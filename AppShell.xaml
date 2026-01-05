@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:view="clr-namespace:PeachWallet"
+    xmlns:views="clr-namespace:PeachWallet.View"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     Shell.BackgroundColor="{StaticResource Gray950}">
 
@@ -19,11 +20,11 @@
         </Style>
 
     </Shell.Resources>
-    <Tab Title="Home" Style="{StaticResource TabStyle}">
+    <Tab Title="Lançamentos" Style="{StaticResource TabStyle}">
         <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate view:MainPage}"
-        Route="MainPage" />
+        Title="Lançamentos"
+        ContentTemplate="{DataTemplate views:LancamentoPage}"
+        Route="LancamentoPage" />
     </Tab>
     <Tab Title="Lançamentos" Style="{StaticResource TabStyle}">
         <ShellContent

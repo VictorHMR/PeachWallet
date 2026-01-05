@@ -71,7 +71,7 @@ namespace PeachWallet.Database
 
         private async Task CreateSchema()
         {
-            //await _connection.CreateTableAsync<TableName>();
+            await _connection.CreateTableAsync<Lancamento>();
         }
 
 

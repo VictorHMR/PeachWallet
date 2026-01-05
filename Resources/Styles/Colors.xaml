@@ -41,7 +41,7 @@
     <!-- Entradas / Sobras -->
     <Color x:Key="Negative">#EB5757</Color>
     <!-- Gastos -->
-    <Color x:Key="Investment">#F2C94C</Color>
+    <Color x:Key="Investment">#8A6DAA</Color>
     <!-- Investimentos -->
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />

@@ -436,5 +436,15 @@
         <Setter Property="UnselectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray950}}" />
         <Setter Property="SelectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray200}}" />
     </Style>
-
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{StaticResource Secondary}" />
+        <Setter Property="BorderColor" Value="{StaticResource Secondary}" />
+        <Setter Property="BorderWidth" Value="2" />
+    </Style>
+    <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+    </Style>
 </ResourceDictionary>

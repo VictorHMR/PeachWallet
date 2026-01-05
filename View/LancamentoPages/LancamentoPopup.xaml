@@ -1,0 +1,129 @@
+<mopups:PopupPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
+    xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
+    x:Class="PeachWallet.View.LancamentoPopup"
+    BackgroundColor="#80000000">
+
+    <!-- GRID CENTRALIZADOR -->
+    <Grid
+        HorizontalOptions="Center"
+        VerticalOptions="Center">
+
+        <Border
+            BackgroundColor="{StaticResource Gray600}"
+            Padding="20"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 12"
+            WidthRequest="280">
+
+            <Grid RowDefinitions="Auto,Auto">
+
+                <!-- HEADER -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="*,Auto"
+                      Margin="0,0,0,20">
+
+                    <Label x:Name="TitleLabel"
+                           Text="Novo Gasto"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center" />
+
+                    <Border x:Name="btnDelete"
+                            Grid.Column="1"
+                            BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            VerticalOptions="Center">
+
+                        <Image WidthRequest="30"
+                               HeightRequest="30"
+                               Aspect="AspectFit">
+
+                            <Image.Source>
+                                <FontImageSource
+                                    FontFamily="FASolid"
+                                    Glyph="{x:Static fa:Solid.TrashCan}"
+                                    Color="{StaticResource White}" />
+                            </Image.Source>
+
+                            <Image.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnDeleteClicked" />
+                            </Image.GestureRecognizers>
+
+                        </Image>
+                    </Border>
+                </Grid>
+
+                <!-- FORM -->
+                <input:FormView Grid.Row="1"
+                                x:Name="inputForm"
+                                Spacing="0">
+
+                    <Grid RowDefinitions="Auto,Auto,Auto"
+                          RowSpacing="10">
+
+                        <VerticalStackLayout Grid.Row="0"
+                                             Spacing="10">
+
+                            <material:TextField Title="Descrição"
+                                                 x:Name="txtDescricao">
+                                <validation:RequiredValidation
+                                    Message="Digite uma descrição!" />
+                            </material:TextField>
+
+                            <material:TextField Title="Valor"
+                                                 x:Name="txtValor"
+                                                 Keyboard="Numeric">
+                                <validation:RequiredValidation
+                                    Message="Digite um valor!" />
+                            </material:TextField>
+
+                            <material:DropdownField
+                                x:Name="dpdTipoLancamento"
+                                Title="Tipo de lançamento"
+                                Icon="{FontImageSource FontFamily=FASolid,
+                                       Glyph={x:Static fa:Solid.AngleDown}}">
+
+                                <material:DropdownField.Validations>
+                                    <validation:RequiredValidation
+                                        Message="Selecione um Tipo" />
+                                </material:DropdownField.Validations>
+                            </material:DropdownField>
+
+                        </VerticalStackLayout>
+
+                        <BoxView Grid.Row="1"
+                                 HeightRequest="1"
+                                 Opacity="0" />
+
+                        <Grid Grid.Row="2"
+                              ColumnDefinitions="*,*"
+                              ColumnSpacing="10">
+
+                            <Button
+                                x:Name="btnSubmit"
+                                Text="Criar"
+                                input:FormView.IsSubmitButton="True"
+                                BackgroundColor="{StaticResource Primary}" />
+
+                            <Button
+                                Grid.Column="1"
+                                Text="Cancelar"
+                                Clicked="OnCancelClicked"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                BorderColor="{StaticResource Primary}" />
+                        </Grid>
+
+                    </Grid>
+                </input:FormView>
+
+            </Grid>
+        </Border>
+    </Grid>
+
+</mopups:PopupPage>
