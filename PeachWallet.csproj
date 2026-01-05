@@ -90,16 +90,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="UraniumUI.Material" Version="2.14.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Database\Models\" />
 	  <Folder Include="Models\" />
 	  <Folder Include="ViewModel\" />
 	  <Folder Include="View\" />
-	  <Folder Include="Utils\" />
 	</ItemGroup>
 
 </Project>

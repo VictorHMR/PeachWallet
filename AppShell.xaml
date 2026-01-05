@@ -4,11 +4,36 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:view="clr-namespace:PeachWallet"
-    Title="PeachWallet">
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    Shell.BackgroundColor="{StaticResource Gray950}">
 
-    <Tab Title="Desafios">
+    <Shell.Behaviors>
+        <toolkit:StatusBarBehavior StatusBarColor="{StaticResource Gray950}" StatusBarStyle="LightContent" />
+    </Shell.Behaviors>
+    <Shell.Resources>
+        <Style x:Key="TabStyle" TargetType="Tab">
+            <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource White}" />
+            <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource White}" />
+            <Setter Property="Shell.TabBarUnselectedColor" Value="AntiqueWhite" />
+            <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource Primary}" />
+        </Style>
+
+    </Shell.Resources>
+    <Tab Title="Home" Style="{StaticResource TabStyle}">
         <ShellContent
         Title="Home"
+        ContentTemplate="{DataTemplate view:MainPage}"
+        Route="MainPage" />
+    </Tab>
+    <Tab Title="Lançamentos" Style="{StaticResource TabStyle}">
+        <ShellContent
+        Title="Home2"
+        ContentTemplate="{DataTemplate view:MainPage}"
+        Route="MainPage" />
+    </Tab>
+    <Tab Title="Relatório" Style="{StaticResource TabStyle}">
+        <ShellContent
+        Title="Home3"
         ContentTemplate="{DataTemplate view:MainPage}"
         Route="MainPage" />
     </Tab>
