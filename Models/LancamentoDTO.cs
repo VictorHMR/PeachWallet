@@ -61,8 +61,5 @@ namespace PeachWallet.Models
                 return $"{sinal}{valor:C}";
             }
         }
-
-
-
     }
 }

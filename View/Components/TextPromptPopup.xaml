@@ -1,0 +1,84 @@
+<mopups:PopupPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+    xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
+    xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
+    x:Class="PeachWallet.View.Components.TextPromptPopup"
+    BackgroundColor="#80000000">
+
+    <Grid HorizontalOptions="Center"
+          VerticalOptions="Center">
+
+        <Border
+            BackgroundColor="{StaticResource Gray600}"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 12"
+            MinimumWidthRequest="1000"
+            Margin="40,0">
+
+            <Grid RowDefinitions="Auto,Auto,Auto">
+
+                <!-- HEADER -->
+                <Label
+                    x:Name="TitleLabel"
+                    Grid.Row="0"
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    Padding="20,10" />
+
+                <BoxView
+                    Grid.Row="1"
+                    HeightRequest="1"
+                    Color="{StaticResource Gray300}" />
+
+                <!-- FORM -->
+                <input:FormView
+                    Grid.Row="2"
+                    x:Name="inputForm"
+                    Spacing="0">
+
+                    <Grid RowDefinitions="Auto,Auto">
+
+                        <VerticalStackLayout
+                            Padding="20,10"
+                            Spacing="10">
+                            <Label x:Name="lblInput" Text="aaaa" />
+
+                            <material:TextField
+                                x:Name="txtInput"
+                                Title="Valor">
+                                <validation:RequiredValidation
+                                    Message="Campo obrigatório!" />
+                            </material:TextField>
+
+                        </VerticalStackLayout>
+
+                        <Grid
+                            Grid.Row="1"
+                            Padding="20,10"
+                            ColumnDefinitions="*,*"
+                            ColumnSpacing="10">
+
+                            <Button
+                                Text="Cancelar"
+                                Clicked="OnCancelClicked"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+
+                            <Button
+                                x:Name="btnSubmit"
+                                Grid.Column="1"
+                                Text="Confirmar"
+                                input:FormView.IsSubmitButton="True"
+                                BackgroundColor="{StaticResource Primary}" />
+
+                        </Grid>
+
+                    </Grid>
+                </input:FormView>
+
+            </Grid>
+        </Border>
+    </Grid>
+</mopups:PopupPage>

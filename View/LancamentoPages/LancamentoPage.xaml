@@ -5,7 +5,9 @@
              xmlns:models="clr-namespace:PeachWallet.Models"
              xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
              xmlns:vm="clr-namespace:PeachWallet.ViewModel"
+             Title="Lançamentos"
              x:DataType="vm:LancamentoVM">
+    
     <Grid RowDefinitions="*, 60">
         <VerticalStackLayout Padding="20" Spacing="20" Grid.Row="0">
             <Label Text="Período" FontSize="20" FontAttributes="Bold" />

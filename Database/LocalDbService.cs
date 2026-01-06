@@ -62,6 +62,7 @@ namespace PeachWallet.Database
                 dbInfo.Version = CurrentDbVersion;
                 await _connection.UpdateAsync(dbInfo);
             }
+            await CreateSchema();
         }
 
         private async Task MigrateDatabase(int oldVersion)
@@ -72,6 +73,8 @@ namespace PeachWallet.Database
         private async Task CreateSchema()
         {
             await _connection.CreateTableAsync<Lancamento>();
+            await _connection.CreateTableAsync<ContaBancaria>();
+            await _connection.CreateTableAsync<Projecao>();
         }
 
 

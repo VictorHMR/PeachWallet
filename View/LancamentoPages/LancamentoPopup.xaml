@@ -16,28 +16,28 @@
 
         <Border
             BackgroundColor="{StaticResource Gray600}"
-            Padding="20"
             StrokeThickness="0"
-            StrokeShape="RoundRectangle 12"
-            WidthRequest="280">
+            StrokeShape="RoundRectangle 12" MinimumWidthRequest="1000" Margin="40, 0">
 
-            <Grid RowDefinitions="Auto,Auto">
+            <Grid RowDefinitions="Auto,*, Auto" RowSpacing="0">
 
                 <!-- HEADER -->
-                <Grid Grid.Row="0"
+                <Grid Grid.Row="0" 
                       ColumnDefinitions="*,Auto"
-                      Margin="0,0,0,20">
+                      Margin="0">
 
                     <Label x:Name="TitleLabel"
-                           Text="Novo Gasto"
+                           Text="Novo Lançamento"
                            FontSize="20"
                            FontAttributes="Bold"
+                           Padding="20,10"
                            VerticalOptions="Center" />
 
                     <Border x:Name="btnDelete"
                             Grid.Column="1"
                             BackgroundColor="Transparent"
                             StrokeThickness="0"
+                            Padding="20,10"
                             VerticalOptions="Center">
 
                         <Image WidthRequest="30"
@@ -58,16 +58,17 @@
                         </Image>
                     </Border>
                 </Grid>
-
+                
+                <BoxView StyleClass="Divider" Grid.Row="1" Margin="0"  Color="{StaticResource Gray300}" />
                 <!-- FORM -->
-                <input:FormView Grid.Row="1"
+                <input:FormView Grid.Row="2" 
                                 x:Name="inputForm"
                                 Spacing="0">
 
                     <Grid RowDefinitions="Auto,Auto,Auto"
-                          RowSpacing="10">
+                          RowSpacing="0">
 
-                        <VerticalStackLayout Grid.Row="0"
+                        <VerticalStackLayout Grid.Row="0"  Padding="20,10"
                                              Spacing="10">
 
                             <material:TextField Title="Descrição"
@@ -86,8 +87,7 @@
                             <material:DropdownField
                                 x:Name="dpdTipoLancamento"
                                 Title="Tipo de lançamento"
-                                Icon="{FontImageSource FontFamily=FASolid,
-                                       Glyph={x:Static fa:Solid.AngleDown}}">
+                                Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.AngleDown}}">
 
                                 <material:DropdownField.Validations>
                                     <validation:RequiredValidation
@@ -97,26 +97,25 @@
 
                         </VerticalStackLayout>
 
-                        <BoxView Grid.Row="1"
-                                 HeightRequest="1"
-                                 Opacity="0" />
+                        <BoxView Grid.Row="1" HeightRequest="1" Margin="0,5,0,0" Color="{StaticResource Gray300}"/>
 
-                        <Grid Grid.Row="2"
+
+                        <Grid Grid.Row="2" Padding="20,10" 
                               ColumnDefinitions="*,*"
                               ColumnSpacing="10">
 
                             <Button
-                                x:Name="btnSubmit"
-                                Text="Criar"
-                                input:FormView.IsSubmitButton="True"
-                                BackgroundColor="{StaticResource Primary}" />
-
-                            <Button
-                                Grid.Column="1"
                                 Text="Cancelar"
                                 Clicked="OnCancelClicked"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 BorderColor="{StaticResource Primary}" />
+
+                            <Button
+                                x:Name="btnSubmit"
+                                Grid.Column="1"
+                                Text="Criar"
+                                input:FormView.IsSubmitButton="True"
+                                BackgroundColor="{StaticResource Primary}" />
                         </Grid>
 
                     </Grid>
@@ -125,5 +124,5 @@
             </Grid>
         </Border>
     </Grid>
-
+  
 </mopups:PopupPage>

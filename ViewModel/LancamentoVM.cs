@@ -41,8 +41,6 @@ namespace PeachWallet.ViewModel
             if (_dataCompleted)
                 return;
 
-            await Task.Delay(1000);
-
             var lstLancamentos = await _connection.SelectAsync<Lancamento>();
 
             if (lstLancamentos.Count < _pageSize)
@@ -67,7 +65,7 @@ namespace PeachWallet.ViewModel
 
 
         [RelayCommand]
-        public async Task ReloadLancamentoAsync()
+        public async Task ReloadContaAsync()
         {
             Lancamentos.Clear();
             _pageNumber = 1;
@@ -80,7 +78,7 @@ namespace PeachWallet.ViewModel
         {
             lancamento.DtLancamento = DateTime.Now;
 
-            await _connection.CreateAsync(new Lancamento
+            lancamento.IdLancamento = await _connection.CreateAsync(new Lancamento
             {
                 Descricao = lancamento.Descricao,
                 DtLancamento = lancamento.DtLancamento,

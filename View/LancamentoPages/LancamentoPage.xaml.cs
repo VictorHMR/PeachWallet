@@ -10,15 +10,11 @@ namespace PeachWallet.View;
 
 public partial class LancamentoPage : ContentPage
 {
-	private LocalDbService _connection;
     private LancamentoVM _viewModel;
-    private bool isLoadingData = true;
 
     public LancamentoPage(LocalDbService connection)
 	{
 		InitializeComponent();
-		_connection = connection;
-
         _viewModel = new LancamentoVM(connection);
         BindingContext = _viewModel;
     }
@@ -62,21 +58,18 @@ public partial class LancamentoPage : ContentPage
                         await _viewModel.CriarLancamentoAsync(lancamento);                        
                 })
         );
-
     }
 
     private void LoadDates()
     {
-        isLoadingData = true;
         entryStartDate.Date = DateTime.Now.Date;
         entryEndDate.Date = DateTime.Now.Date;
-        isLoadingData = false;
     }
 
 
     private async Task CarregaDadosLancamento()
     {
-        await _viewModel.ReloadLancamentoAsync();
+        await _viewModel.ReloadContaAsync();
     }
 
 

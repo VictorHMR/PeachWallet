@@ -111,13 +111,7 @@ public partial class LancamentoPopup
 
 }
 
-public enum PopupMode
-{
-    Create,
-    Update,
-    Delete,
-    Cancel
-}
+
 public class TipoLancamentoPickerItem
 {
     public TiposLancamento Id { get; set; }

@@ -6,36 +6,26 @@
     xmlns:view="clr-namespace:PeachWallet"
     xmlns:views="clr-namespace:PeachWallet.View"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    Shell.BackgroundColor="{StaticResource Gray950}">
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    Shell.BackgroundColor="{StaticResource MidnightBlue}">
 
     <Shell.Behaviors>
-        <toolkit:StatusBarBehavior StatusBarColor="{StaticResource Gray950}" StatusBarStyle="LightContent" />
+        <toolkit:StatusBarBehavior StatusBarColor="{StaticResource MidnightBlue}" StatusBarStyle="LightContent" />
     </Shell.Behaviors>
     <Shell.Resources>
         <Style x:Key="TabStyle" TargetType="Tab">
-            <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource White}" />
-            <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource White}" />
-            <Setter Property="Shell.TabBarUnselectedColor" Value="AntiqueWhite" />
-            <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource Primary}" />
+            <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource PrimaryDark}" />
+            <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource PrimaryDark}" />
+            <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource Gray400}" />
+            <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource Gray950}" />
         </Style>
 
     </Shell.Resources>
-    <Tab Title="Lançamentos" Style="{StaticResource TabStyle}">
-        <ShellContent
-        Title="Lançamentos"
-        ContentTemplate="{DataTemplate views:LancamentoPage}"
-        Route="LancamentoPage" />
+    <Tab Title="Lançamentos" Style="{StaticResource TabStyle}" Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.MoneyBill}}">
+        <ShellContent ContentTemplate="{DataTemplate views:LancamentoPage}" />
     </Tab>
-    <Tab Title="Lançamentos" Style="{StaticResource TabStyle}">
-        <ShellContent
-        Title="Home2"
-        ContentTemplate="{DataTemplate view:MainPage}"
-        Route="MainPage" />
-    </Tab>
-    <Tab Title="Relatório" Style="{StaticResource TabStyle}">
-        <ShellContent
-        Title="Home3"
-        ContentTemplate="{DataTemplate view:MainPage}"
-        Route="MainPage" />
+    <Tab Title="Saldo" Style="{StaticResource TabStyle}" Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.Coins}}">
+        <ShellContent ContentTemplate="{DataTemplate views:SaldoPage}" />
+
     </Tab>
 </Shell>

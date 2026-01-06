@@ -1,0 +1,89 @@
+<mopups:PopupPage
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PeachWallet.View.SaldoPages.ContaBancariaPopup"
+             xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+             xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
+             xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
+             BackgroundColor="#80000000">
+    
+    <Grid
+        HorizontalOptions="Center"
+        VerticalOptions="Center">
+
+        <Border
+            BackgroundColor="{StaticResource Gray600}"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 12" MinimumWidthRequest="1000" Margin="40, 0">
+
+            <Grid RowDefinitions="Auto,Auto, Auto">
+
+                <!-- HEADER -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="*,Auto"
+                      Margin="0">
+
+                    <Label x:Name="TitleLabel"
+                           Text="Nova Conta Bancária"
+                           FontSize="20"
+                           Padding="20,10"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center" />
+                </Grid>
+                
+                <BoxView StyleClass="Divider" Grid.Row="1" Margin="0"  Color="{StaticResource Gray300}" />
+
+                <!-- FORM -->
+                <input:FormView Grid.Row="2"
+                                x:Name="inputForm"
+                                Spacing="0">
+
+                    <Grid RowDefinitions="Auto,Auto,Auto"
+                          RowSpacing="0">
+
+                        <VerticalStackLayout Grid.Row="0"  Padding="20,10"
+                                             Spacing="10">
+
+                            <material:TextField Title="Apelido da conta"
+                                                 x:Name="txtNomeConta">
+                                <validation:RequiredValidation
+                                    Message="Digite um apelido para a conta!" />
+                            </material:TextField>
+
+                            <material:TextField Title="Saldo"
+                                                 x:Name="txtSaldo"
+                                                 Keyboard="Numeric">
+                                <validation:RequiredValidation
+                                    Message="Digite um valor!" />
+                            </material:TextField>
+
+                        </VerticalStackLayout>
+
+                        <BoxView Grid.Row="1" HeightRequest="1" Margin="0,5,0,0" Color="{StaticResource Gray300}"/>
+
+                        <Grid Grid.Row="2"  Padding="20,10" 
+                              ColumnDefinitions="*,*"
+                              ColumnSpacing="10">
+
+                            <Button
+                                Text="Cancelar"
+                                Clicked="OnCancelClicked"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                BorderColor="{StaticResource Primary}" />
+                            <Button
+                                x:Name="btnSubmit"
+                                Grid.Column="1"
+                                Text="Criar"
+                                input:FormView.IsSubmitButton="True"
+                                BackgroundColor="{StaticResource Primary}" />
+                        </Grid>
+
+                    </Grid>
+                </input:FormView>
+
+            </Grid>
+        </Border>
+    </Grid>
+</mopups:PopupPage>
