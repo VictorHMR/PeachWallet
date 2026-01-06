@@ -190,7 +190,8 @@
                                             <!-- ÍCONES -->
                                             <HorizontalStackLayout Grid.Column="3" Spacing="20">
                                                 <ImageButton MaximumWidthRequest="18" MaximumHeightRequest="18"
-                                                             Clicked="EditarProjecao_Clicked" 
+                                                             Command="{Binding BindingContext.ProjecaoVM.EditarProjecaoCommand,
+                                                            Source={x:Reference SaldoPageRef}}"
                                                              CommandParameter="{Binding .}">
 
                                                     <ImageButton.Source>
@@ -233,7 +234,8 @@
                             TextColor="{StaticResource Gray300}"
                             CornerRadius="6"
                             Padding="0, 12"
-                            Clicked="AdicionarProjecao_Clicked"/>
+                            Command="{Binding BindingContext.ProjecaoVM.CriarProjecaoCommand,
+                            Source={x:Reference SaldoPageRef}}"/>
                 </VerticalStackLayout>
             </Border>
 

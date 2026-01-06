@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using AndroidX.Lifecycle;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mopups.Services;
 using PeachWallet.Database;
@@ -69,10 +70,55 @@ namespace PeachWallet.ViewModel
             await GetProjecoesAsync();
             _dataCompleted = true;
         }
+        [RelayCommand]
+        public async Task CriarProjecaoAsync()
+        {
+            var ano = Projecoes.Any() ? Projecoes.Max(x => x.Ano) + 1 : DateTime.Now.Date.Year;
+            var result = await PromptService.ShowTextPromptAsync(
+                title: "Nova Projeção",
+                fieldTitle: $"Quanto pretende investir mensalmente em {ano}?",
+                keyboard: Keyboard.Numeric
+            );
+
+            if (string.IsNullOrEmpty(result))
+                return;
+            int meses = DateTime.Now.Date.Year == ano ? 12 - DateTime.Now.Month + 1 : 12;
+            double SaltoTotal = Projecoes.FirstOrDefault(x => x.Ano == ano - 1)?.ValorTotal ?? SaldoAtual;
+
+            ProjecaoDTO projecao = new ProjecaoDTO
+            {
+                Ano = ano,
+                InvestidoMensal = double.Parse(result),
+                ValorTotal = double.Parse(result) * meses + SaltoTotal,
+                Investido = double.Parse(result) * meses
+            };
+
+            projecao.IdProjecao = await _connection.CreateAsync(new Projecao
+            {
+                Ano = projecao.Ano,
+                InvestidoMensal = projecao.InvestidoMensal,
+            });
+
+            Projecoes.Add(projecao);
+            AtualizarUltimoItem();
+        }
+        [RelayCommand]
         public async Task EditarProjecaoAsync(ProjecaoDTO projecao)
         {
             int meses = DateTime.Now.Date.Year == projecao.Ano ? 12 - DateTime.Now.Month + 1 : 12;
-            double SaltoTotal = Projecoes.FirstOrDefault(x=> x.Ano == projecao.Ano -1)?.ValorTotal ?? SaldoAtual;
+            double SaltoTotal = Projecoes.FirstOrDefault(x => x.Ano == projecao.Ano - 1)?.ValorTotal ?? SaldoAtual;
+
+            var result = await PromptService.ShowTextPromptAsync(
+                title: "Editar Projeção",
+                fieldTitle: $"Quanto pretende investir mensalmente em {projecao.Ano}?",
+                initialValue: projecao.InvestidoMensal.ToString(),
+                keyboard: Keyboard.Numeric
+            );
+
+            if (string.IsNullOrEmpty(result))
+                return;
+
+            projecao.InvestidoMensal = double.Parse(result);
             projecao.ValorTotal = projecao.InvestidoMensal * meses + SaltoTotal;
 
             await _connection.UpdateAsync(new Projecao
@@ -94,22 +140,7 @@ namespace PeachWallet.ViewModel
             foreach (var item in projecoesFuturas)
                 await EditarProjecaoAsync(item);
         }
-        public async Task CriarProjecaoAsync(ProjecaoDTO projecao)
-        {
-            int meses = DateTime.Now.Date.Year == projecao.Ano ? 12 - DateTime.Now.Month + 1 : 12;
-            double SaltoTotal = Projecoes.FirstOrDefault(x => x.Ano == projecao.Ano - 1)?.ValorTotal ?? SaldoAtual;
-            projecao.ValorTotal = projecao.InvestidoMensal * meses + SaltoTotal;
-            projecao.Investido = projecao.InvestidoMensal * meses;
 
-            projecao.IdProjecao = await _connection.CreateAsync(new Projecao
-            {
-                Ano = projecao.Ano,
-                InvestidoMensal = projecao.InvestidoMensal,
-            });
-
-            Projecoes.Add(projecao);
-            AtualizarUltimoItem();
-        }
         [RelayCommand]
         private async Task RemoverProjecaoAsync(ProjecaoDTO projecao)
         {
