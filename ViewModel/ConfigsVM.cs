@@ -1,93 +1,55 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using PeachWallet.Database;
 using PeachWallet.Database.Models;
-using PeachWallet.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PeachWallet.ViewModel
 {
     public partial class ConfigsVM : ObservableObject
     {
         private readonly LocalDbService _connection;
-        public ContaBancariaVM ContaBancariaVM { get; }
-
         private bool _isLoading;
 
-        [ObservableProperty]
-        private ConfigsDTO configs;
+        public ObservableCollection<int> DiasFechamento { get; } =
+            new(Enumerable.Range(1, 30));
 
         [ObservableProperty]
-        private ContaBancariaDTO? contaMovimentacao;
-
-        [ObservableProperty]
-        private ContaBancariaDTO? contaInvestimento;
+        private int diaFechamentoFatura;
 
         public ConfigsVM(LocalDbService connection)
         {
             _connection = connection;
-            ContaBancariaVM = new ContaBancariaVM(_connection);
         }
 
         public async Task LoadAsync()
         {
             _isLoading = true;
 
-            await ContaBancariaVM.ReloadContaAsync();
             var config = await _connection.GetAsync<Configs>();
 
-            Configs = new ConfigsDTO
-            {
-                IdConfig = config.Id,
-                IdContaMovimentacao = config.IdContaMovimentacao,
-                IdContaInvestimento = config.IdContaInvestimento
-            };
-
-            ContaMovimentacao = ContaBancariaVM.ContasBancarias
-                .FirstOrDefault(x => x.IdContaBancaria == Configs.IdContaMovimentacao);
-
-            ContaInvestimento = ContaBancariaVM.ContasBancarias
-                .FirstOrDefault(x => x.IdContaBancaria == Configs.IdContaInvestimento);
+            DiaFechamentoFatura = config.NrDiaFechamentoFatura ?? 1;
 
             _isLoading = false;
         }
 
-        partial void OnContaMovimentacaoChanged(ContaBancariaDTO? value)
-        {
-            AtualizarConfig(
-                () => Configs.IdContaMovimentacao = value?.IdContaBancaria ?? 0
-            );
-        }
 
-        partial void OnContaInvestimentoChanged(ContaBancariaDTO? value)
+        partial void OnDiaFechamentoFaturaChanged(int value)
         {
-            AtualizarConfig(
-                () => Configs.IdContaInvestimento = value?.IdContaBancaria ?? 0
-            );
-        }
-
-        private void AtualizarConfig(Action atualizar)
-        {
-            if (_isLoading || Configs == null)
+            if (_isLoading)
                 return;
 
-            atualizar();
-            _ = SaveConfigsAsync();
+            _ = SaveDiaFechamentoAsync(value);
         }
 
-        private async Task SaveConfigsAsync()
+        private async Task SaveDiaFechamentoAsync(int dia)
         {
-            await _connection.UpdateAsync(new Configs
-            {
-                Id = Configs.IdConfig,
-                IdContaMovimentacao = Configs.IdContaMovimentacao,
-                IdContaInvestimento = Configs.IdContaInvestimento
-            });
+            var config = await _connection.GetAsync<Configs>();
+
+            if (config.NrDiaFechamentoFatura == dia)
+                return;
+
+            config.NrDiaFechamentoFatura = dia;
+            await _connection.UpdateAsync(config);
         }
     }
 }

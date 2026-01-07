@@ -15,5 +15,7 @@ namespace PeachWallet.Models
         private int? idContaMovimentacao;
         [ObservableProperty]
         private int? idContaInvestimento;
+        [ObservableProperty]
+        private int? nrDiaFechamentoFatura;
     }
 }

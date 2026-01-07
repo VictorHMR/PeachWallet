@@ -24,6 +24,8 @@ public partial class ContaBancariaPopup
         {
             txtNomeConta.Text = contaBancaria.Nome;
             txtSaldo.Text = contaBancaria.SaldoAtual.ToString("N2");
+            swtContaMov.IsToggled = contaBancaria.ContaMovimentacao;
+            swtContaInvest.IsToggled = contaBancaria.ContaInvestimento;
         }
 
         switch (_mode)
@@ -54,6 +56,8 @@ public partial class ContaBancariaPopup
 
         dto.Nome = txtNomeConta.Text;
         dto.SaldoAtual = double.TryParse(txtSaldo.Text, out double value) ? value : 0;
+        dto.ContaMovimentacao = swtContaMov.IsToggled;
+        dto.ContaInvestimento= swtContaInvest.IsToggled;
 
         _onSubmit?.Invoke(dto, _mode);
         MopupService.Instance.PopAsync();

@@ -40,6 +40,7 @@ namespace PeachWallet.ViewModel
                 return;
 
             var lstContas = await _connection.SelectAsync<ContaBancaria>();
+            var config = await _connection.GetAsync<Configs>();
 
 
             foreach (var item in lstContas)
@@ -48,7 +49,9 @@ namespace PeachWallet.ViewModel
                 {
                     IdContaBancaria = item.Id,
                     Nome = item.NomeConta,
-                    SaldoAtual = item.Saldo
+                    SaldoAtual = item.Saldo,
+                    ContaMovimentacao = config.IdContaMovimentacao == item.Id,
+                    ContaInvestimento = config.IdContaInvestimento == item.Id
                 });
             }
         }
@@ -69,7 +72,7 @@ namespace PeachWallet.ViewModel
                     PopupMode.Update,
                     async (result, mode) =>
                     {
-                        if (result != null)
+                        if (result != null && mode != PopupMode.Cancel)
                         {
                             await _connection.UpdateAsync(new ContaBancaria
                             {
@@ -83,6 +86,9 @@ namespace PeachWallet.ViewModel
                                 return;
                             existente.Nome = result.Nome;
                             existente.SaldoAtual = result.SaldoAtual;
+                            existente.ContaMovimentacao = result.ContaMovimentacao;
+                            existente.ContaInvestimento = result.ContaInvestimento;
+                            await AlterarConfiguracoesAsync(result);
                         }
                     },
                     conta)
@@ -101,8 +107,10 @@ namespace PeachWallet.ViewModel
                             NomeConta = contaBancaria.Nome,
                             Saldo = contaBancaria.SaldoAtual
                         });
-
                         ContasBancarias.Add(contaBancaria);
+
+                        if (contaBancaria.ContaMovimentacao || contaBancaria.ContaInvestimento)
+                            await AlterarConfiguracoesAsync(contaBancaria);
                     }
                 })
             );
@@ -126,5 +134,41 @@ namespace PeachWallet.ViewModel
             if (item != null)
                 ContasBancarias.Remove(item);
         }
+
+
+        //Helpers
+        public async Task AlterarConfiguracoesAsync(ContaBancariaDTO contaAtualizada)
+        {
+            var config = await _connection.GetAsync<Configs>();
+
+            if (contaAtualizada.ContaMovimentacao)
+            {
+                foreach (var conta in ContasBancarias)
+                    conta.ContaMovimentacao = false;
+
+                contaAtualizada.ContaMovimentacao = true;
+                config.IdContaMovimentacao = contaAtualizada.IdContaBancaria;
+            }
+            else if (config.IdContaMovimentacao == contaAtualizada.IdContaBancaria)
+            {
+                config.IdContaMovimentacao = 0;
+            }
+
+            if (contaAtualizada.ContaInvestimento)
+            {
+                foreach (var conta in ContasBancarias)
+                    conta.ContaInvestimento = false;
+
+                contaAtualizada.ContaInvestimento = true;
+                config.IdContaInvestimento = contaAtualizada.IdContaBancaria;
+            }
+            else if (config.IdContaInvestimento == contaAtualizada.IdContaBancaria)
+            {
+                config.IdContaInvestimento = 0;
+            }
+
+            await _connection.UpdateAsync(config);
+        }
+
     }
 }

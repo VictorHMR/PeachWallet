@@ -10,5 +10,6 @@ namespace PeachWallet.Database.Models
     {
         public int? IdContaMovimentacao { get; set; }
         public int? IdContaInvestimento { get; set; }
+        public int? NrDiaFechamentoFatura { get; set; }
     }
 }

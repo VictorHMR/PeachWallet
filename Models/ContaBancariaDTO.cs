@@ -15,5 +15,10 @@ namespace PeachWallet.Models
         private string nome;
         [ObservableProperty]
         private double saldoAtual;
+
+        [ObservableProperty]
+        private bool contaMovimentacao;
+        [ObservableProperty]
+        private bool contaInvestimento;
     }
 }
