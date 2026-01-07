@@ -50,10 +50,8 @@ namespace PeachWallet.Database
             await _connection.CreateTableAsync<DbInfo>();
 
             var dbInfo = await _connection.Table<DbInfo>().FirstOrDefaultAsync();
-
             if (dbInfo == null)
             {
-                await CreateSchema();
                 await _connection.InsertAsync(new DbInfo { Version = CurrentDbVersion });
             }
             else if (dbInfo.Version < CurrentDbVersion)
@@ -62,6 +60,14 @@ namespace PeachWallet.Database
                 dbInfo.Version = CurrentDbVersion;
                 await _connection.UpdateAsync(dbInfo);
             }
+
+            await _connection.CreateTableAsync<Configs>();
+            var configs = await _connection.Table<Configs>().FirstOrDefaultAsync();
+            if(configs == null)
+            {
+                await _connection.InsertAsync(new Configs { IdContaInvestimento = null, IdContaMovimentacao = null});
+            }
+
             await CreateSchema();
         }
 
@@ -78,16 +84,18 @@ namespace PeachWallet.Database
         }
 
 
-        public async Task<T> GetAsync<T>(Expression<Func<T, bool>> predicate) where T : new()
+        public async Task<T> GetAsync<T>(Expression<Func<T, bool>> predicate = null) where T : new()
         {
             await EnsureInitializedAsync();
             if (_connection != null)
             {
-                return await _connection.Table<T>().FirstOrDefaultAsync(predicate);
+                if(predicate == null)
+                    return await _connection.Table<T>().FirstOrDefaultAsync();
+                else
+                    return await _connection.Table<T>().FirstOrDefaultAsync(predicate);
             }
             return default;
         }
-
 
         public async Task<bool> UpdateAsync<T>(T entity) where T : new()
         {
@@ -125,8 +133,6 @@ namespace PeachWallet.Database
             if (_connection is not null)
                 await _connection.DeleteAsync<T>(id);
         }
-
-
 
         public async Task<List<T>> SelectAsync<T>(Expression<Func<T, bool>> predicate = null) where T : new()
         {

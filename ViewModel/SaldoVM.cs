@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PeachWallet.Database;
 using PeachWallet.Models;
 using System;
@@ -79,5 +80,6 @@ namespace PeachWallet.ViewModel
                 }
             }
         }
+
     }
 }

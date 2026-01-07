@@ -120,6 +120,9 @@
 	  <MauiXaml Update="View\Components\TextPromptPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="View\ConfigsPage\ConfigsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="View\LancamentoPages\LancamentoPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

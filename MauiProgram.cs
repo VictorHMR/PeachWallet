@@ -33,7 +33,6 @@ namespace PeachWallet
             builder.Logging.AddDebug();
 #endif
             builder.Services.AddMopupsDialogs();
-
             builder.Services.AddSingleton<LocalDbService>();
             CurrentApp = builder.Build();
             return CurrentApp;
