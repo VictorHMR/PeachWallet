@@ -25,10 +25,10 @@ namespace PeachWallet.ViewModel
         public async Task LoadAsync()
         {
             isLoading = true;
-            await ContaBancariaVM.ReloadContaAsync();
-
             ContaBancariaVM.ContasBancarias.CollectionChanged -= OnContasChanged;
             ContaBancariaVM.ContasBancarias.CollectionChanged += OnContasChanged;
+
+            await ContaBancariaVM.ReloadContaAsync();
 
             foreach (var conta in ContaBancariaVM.ContasBancarias)
             {
