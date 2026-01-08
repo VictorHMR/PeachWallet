@@ -1,10 +1,9 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Handlers;
 using Mopups.Hosting;
 using PeachWallet.Database;
 using UraniumUI;
-using UraniumUI.Dialogs;
-using static Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.VisualElement;
 
 namespace PeachWallet
 {
@@ -32,6 +31,13 @@ namespace PeachWallet
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
+            Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("MyCustomization", (handler, view) =>
+            {
+                if (view is Picker)
+                {
+                    handler.PlatformView.Background = null;
+                }
+            });
             builder.Services.AddMopupsDialogs();
             builder.Services.AddSingleton<LocalDbService>();
             CurrentApp = builder.Build();

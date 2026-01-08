@@ -151,6 +151,32 @@ namespace PeachWallet.Database
             return new List<T>(); // Retorna uma lista vazia caso a conexão seja nula
         }
 
+        public async Task<List<T>> SelectPagedAsync<T>(int pageNumber, int pageSize, Expression<Func<T, bool>> predicate = null, Expression<Func<T, object>> orderBy = null, bool ascending = true) where T : new()
+        {
+            await EnsureInitializedAsync();
+
+            if (_connection == null)
+                return new List<T>();
+
+            var query = _connection!.Table<T>();
+
+            // Aplica filtro
+            if (predicate != null)
+                query = query.Where(predicate);
+
+            // Aplica ordenação
+            if (orderBy != null)
+            {
+                query = ascending ? query.OrderBy(orderBy) : query.OrderByDescending(orderBy);
+            }
+
+            // Aplica paginação
+            query = query.Skip((pageNumber - 1) * pageSize)
+                         .Take(pageSize);
+
+            return await query.ToListAsync();
+        }
+
     }
 
 }

@@ -1,0 +1,48 @@
+<ContentView
+    x:Class="PeachWallet.View.Components.MonthPickerField"
+    x:Name="Root"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome">
+
+    <Border
+    Stroke="{StaticResource Gray300}"
+    StrokeThickness="1"
+    StrokeShape="RoundRectangle 12"
+    Padding="12,0"
+    BackgroundColor="{StaticResource Gray600}"
+    WidthRequest="{Binding WidthRequest, Source={x:Reference Root}}">
+
+        <Border.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnTapped" />
+        </Border.GestureRecognizers>
+
+        <Grid ColumnDefinitions="Auto,*, Auto" VerticalOptions="Center" Padding="0, 10" ColumnSpacing="5">
+
+            <Image
+                Source="{FontImageSource FontFamily=FASolid,
+                                          Glyph={x:Static fa:Solid.Calendar},
+                                          Color=White}"
+                WidthRequest="20"
+                HeightRequest="20" />
+
+            <Label
+                x:Name="_label"
+                FontAutoScalingEnabled="True"
+                Grid.Column="1"
+                Text="{Binding DisplayText, Source={x:Reference Root}}"
+                HorizontalOptions="Fill"
+                HorizontalTextAlignment="Center"
+                TextColor="{StaticResource Gray100}" 
+                FontAttributes="Bold"/>
+
+            <Image Grid.Column="2"
+            Source="{FontImageSource FontFamily=FASolid,
+                                      Glyph={x:Static fa:Solid.AngleDown},
+                                      Color=White}"
+            WidthRequest="20"
+            HeightRequest="20" />
+
+        </Grid>
+    </Border>
+</ContentView>

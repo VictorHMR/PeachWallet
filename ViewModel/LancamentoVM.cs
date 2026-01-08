@@ -1,9 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Mopups.Services;
 using PeachWallet.Database;
 using PeachWallet.Database.Models;
 using PeachWallet.Models;
 using PeachWallet.Utils;
+using PeachWallet.View;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
@@ -16,32 +18,48 @@ namespace PeachWallet.ViewModel
     {
         private readonly LocalDbService _connection;
 
+
         public ObservableCollection<LancamentoDTO> Lancamentos { get; } = [];
+        [ObservableProperty]
+        private ObservableCollection<MesLancamentoDTO> mesesDisponiveis = [];
+
+        [ObservableProperty]
+        private MesLancamentoDTO? mesSelecionado;
 
         private bool _dataCompleted;
         private int _pageSize = 10;
         private int _pageNumber = 1;
 
-        // =======================
-        // Construtor
-        // =======================
 
         public LancamentoVM(LocalDbService connection)
         {
             _connection = connection;
         }
 
-        // =======================
-        // Commands
-        // =======================
-
+        #region COMMANDS
         [RelayCommand]
         public async Task GetLancamentoAsync()
         {
             if (_dataCompleted)
                 return;
 
-            var lstLancamentos = await _connection.SelectAsync<Lancamento>();
+            if (MesSelecionado == null)
+                return;
+
+            var firstDayOfMonth = new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, 1);
+            var firstDayOfNextMonth = firstDayOfMonth.AddMonths(1);
+
+            Expression<Func<Lancamento, bool>> predicate = x =>
+                x.DtLancamento >= firstDayOfMonth &&
+                x.DtLancamento < firstDayOfNextMonth;
+
+            var lstLancamentos = await _connection.SelectPagedAsync<Lancamento>(
+                  pageNumber: _pageNumber,
+                  pageSize: _pageSize,
+                  predicate: predicate,
+                  orderBy: x => x.DtLancamento,
+                  ascending: false 
+              );
 
             if (lstLancamentos.Count < _pageSize)
                 _dataCompleted = true;
@@ -63,9 +81,63 @@ namespace PeachWallet.ViewModel
             _pageNumber++;
         }
 
+        [RelayCommand]
+        public async Task CriarLancamentoAsync()
+        {
+            await MopupService.Instance.PushAsync(
+                    new LancamentoPopup(PopupMode.Create, async (lancamento, mode) =>
+                    {
+                        if (mode == PopupMode.Create && lancamento != null)
+                        {
+                            lancamento.DtLancamento = DateTime.Now;
+
+                            lancamento.IdLancamento = await _connection.CreateAsync(new Lancamento
+                            {
+                                Descricao = lancamento.Descricao,
+                                DtLancamento = lancamento.DtLancamento,
+                                TipoLancamento = (int)lancamento.TipoLancamento,
+                                Valor = lancamento.Valor,
+                                IdLancamentoRecorrente = lancamento.IdLancamentoRecorrente
+                            });
+                            lancamento.CorTexto = ObterCorTexto(lancamento.TipoLancamento);
+
+                            var index = Lancamentos
+                                .TakeWhile(x => x.DtLancamento > lancamento.DtLancamento)
+                                .Count();
+
+                            Lancamentos.Insert(index, lancamento);
+
+                            await LoadMesesAsync();
+                        }
+                            
+                    })
+            );
+
+
+        }
 
         [RelayCommand]
-        public async Task ReloadContaAsync()
+        public async Task AbrirPopupLancamentoAsync(LancamentoDTO lancamento)
+        {
+            await MopupService.Instance.PushAsync(
+                    new LancamentoPopup(PopupMode.Update, async (lancamento, mode) =>
+                    {
+                        if (mode == PopupMode.Update && lancamento != null)
+                        {
+                            await AtualizarLancamentoAsync(lancamento);
+                        }
+                        else if (mode == PopupMode.Delete && lancamento != null)
+                        {
+                            await RemoverLancamentoAsync(lancamento.IdLancamento);
+                        }
+
+                    }, lancamento)
+            );
+
+        }
+
+        [RelayCommand]
+        public async Task ReloadLancamentoAsync()
         {
             Lancamentos.Clear();
             _pageNumber = 1;
@@ -73,29 +145,18 @@ namespace PeachWallet.ViewModel
             await GetLancamentoAsync();
         }
 
-        //Helpers
-        public async Task CriarLancamentoAsync(LancamentoDTO lancamento)
+        [RelayCommand]
+        private async Task MesSelecionadoAsync(MesLancamentoDTO mes)
         {
-            lancamento.DtLancamento = DateTime.Now;
-
-            lancamento.IdLancamento = await _connection.CreateAsync(new Lancamento
-            {
-                Descricao = lancamento.Descricao,
-                DtLancamento = lancamento.DtLancamento,
-                TipoLancamento = (int)lancamento.TipoLancamento,
-                Valor = lancamento.Valor,
-                IdLancamentoRecorrente = lancamento.IdLancamentoRecorrente
-            });
-            lancamento.CorTexto = ObterCorTexto(lancamento.TipoLancamento);
-
-            var index = Lancamentos
-                .TakeWhile(x => x.DtLancamento > lancamento.DtLancamento)
-                .Count();
-
-            Lancamentos.Insert(index, lancamento);
+            if (mes == null)
+                return;
+            MesSelecionado = mes;
+            await ReloadLancamentoAsync();
         }
+        #endregion
 
-        public async Task AtualizarLancamentoAsync(LancamentoDTO lancamento)
+        #region HELPERS
+        private async Task AtualizarLancamentoAsync(LancamentoDTO lancamento)
         {
             await _connection.UpdateAsync(new Lancamento
             {
@@ -130,7 +191,6 @@ namespace PeachWallet.ViewModel
                 Lancamentos.Remove(item);
         }
 
-
         public Color ObterCorTexto(TiposLancamento tipoLancamento)
         {
             return tipoLancamento switch
@@ -147,6 +207,29 @@ namespace PeachWallet.ViewModel
                 _ => Colors.White
             };
         }
-        
+
+        public async Task LoadMesesAsync()
+        {
+            var lancamentos = await _connection.SelectAsync<Lancamento>();
+            var today = DateTime.Now;
+
+            var meses = lancamentos
+                .Select(x => new { x.DtLancamento.Year, x.DtLancamento.Month })
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .Select(x => new MesLancamentoDTO
+                {
+                    Ano = x.Year,
+                    Mes = x.Month
+                }).ToList();
+
+            if (meses.Count() < 1)
+                meses.Add(new MesLancamentoDTO { Mes = today.Month, Ano = today.Year });
+
+            MesesDisponiveis = new ObservableCollection<MesLancamentoDTO>(meses);
+            MesSelecionado = MesesDisponiveis.FirstOrDefault(x=> x.Ano == today.Year && x.Mes == today.Month);
         }
+        #endregion
+    }
 }

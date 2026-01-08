@@ -117,6 +117,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="View\Components\MonthPickerField.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="View\Components\SelectPromptPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="View\Components\TextPromptPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

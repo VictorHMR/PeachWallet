@@ -4,61 +4,25 @@
              x:Class="PeachWallet.View.LancamentoPage"
              xmlns:models="clr-namespace:PeachWallet.Models"
              xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+             xmlns:components="clr-namespace:PeachWallet.View.Components"
              xmlns:vm="clr-namespace:PeachWallet.ViewModel"
              Title="Lançamentos"
+             x:Name="Root"
              x:DataType="vm:LancamentoVM">
     
     <Grid RowDefinitions="*, 60">
+        
         <VerticalStackLayout Padding="20" Spacing="20" Grid.Row="0">
-            <Label Text="Período" FontSize="20" FontAttributes="Bold" />
-
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
-                <VerticalStackLayout Grid.Column="0" Spacing="5">
-                    <Label Text="Data Inicial" />
-                    <DatePicker x:Name="entryStartDate" Format="dd/MM/yyyy" />
-                </VerticalStackLayout>
-                <VerticalStackLayout Grid.Column="1" Spacing="5">
-                    <Label Text="Data Final" />
-                    <DatePicker x:Name="entryEndDate" Format="dd/MM/yyyy" />
-                </VerticalStackLayout>
-            </Grid>
+            <components:MonthPickerField
+                WidthRequest="190"
+                DisplayMember="Display"
+                DisplayText="Display"
+                ItemsSource="{Binding MesesDisponiveis}"
+                SelectedItem="{Binding MesSelecionado}"
+                SelectionChangedCommand="{Binding MesSelecionadoCommand}" />
 
 
-
-            <VerticalStackLayout Spacing="15">
-                    <Label Text="Gastos do Periodo"
-                           FontAttributes="Bold"
-                           FontSize="20" />
-                <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="Gasto Hoje"
-                            FontSize="16" />
-                        <Label Text="" x:Name="lblTodayBudget"
-                            TextColor="{StaticResource Gray100}"
-                            FontAttributes="Bold"
-                            Grid.Column="1"
-                            FontSize="18" />
-                </Grid>
-                <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="Gasto Total"
-                               FontSize="16" />
-                        <Label Text="" x:Name="lblTotalBudget"
-                               TextColor="{StaticResource Gray100}"
-                               FontAttributes="Bold"
-                               Grid.Column="1"
-                               FontSize="18" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="Valor disponivel"
-                               FontSize="16" />
-                        <Label Text="" x:Name="lblRemaining"
-                               TextColor="{StaticResource Gray100}"
-                               FontAttributes="Bold"
-                               Grid.Column="1"
-                               FontSize="18" />
-                    </Grid>
-                </VerticalStackLayout>
-
-                <VerticalStackLayout Spacing="10">
+            <VerticalStackLayout Spacing="10">
                     <Label Text="Lista de gastos"
                            FontAttributes="Bold"
                            FontSize="20" />
@@ -67,21 +31,16 @@
                     <CollectionView x:Name="lsvLancamentos"
                       ItemsSource="{Binding Lancamentos}"
                       RemainingItemsThreshold="20"
-                      SelectionMode="Single"
-                      SelectionChanged="lsvLancamentos_SelectionChanged">
+                      SelectionMode="None">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:LancamentoDTO">
                                 <Grid ColumnDefinitions="Auto,*,Auto, Auto" RowDefinitions="Auto,Auto" Padding="0,5" ColumnSpacing="10">
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup Name="CommonStates">
-                                            <VisualState Name="Normal" />
-                                            <VisualState Name="Selected">
-                                                <VisualState.Setters>
-                                                    <Setter Property="BackgroundColor" Value="{StaticResource Gray600}" />
-                                                </VisualState.Setters>
-                                            </VisualState>
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                             Command="{Binding BindingContext.AbrirPopupLancamentoCommand, Source={x:Reference Root}}"
+                                            CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+                                    
                                     <Border WidthRequest="45"
                                             HeightRequest="45"
                                             BackgroundColor="{Binding CorTexto}"
@@ -129,7 +88,7 @@
                      HorizontalOptions="End"
                      VerticalOptions="End"
                      Margin="20, 30"
-                     Clicked="OnAddClicked">
+                     Command="{Binding CriarLancamentoCommand}">
             <ImageButton.Source>
                 <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Plus}" Color="{StaticResource OffBlack}" />
             </ImageButton.Source>
