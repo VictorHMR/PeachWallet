@@ -89,8 +89,6 @@ namespace PeachWallet.ViewModel
                     {
                         if (mode == PopupMode.Create && lancamento != null)
                         {
-                            lancamento.DtLancamento = DateTime.Now;
-
                             lancamento.IdLancamento = await _connection.CreateAsync(new Lancamento
                             {
                                 Descricao = lancamento.Descricao,
@@ -130,7 +128,7 @@ namespace PeachWallet.ViewModel
                         {
                             await RemoverLancamentoAsync(lancamento.IdLancamento);
                         }
-
+                        
                     }, lancamento)
             );
 
@@ -173,13 +171,18 @@ namespace PeachWallet.ViewModel
 
             Lancamentos.Remove(existente);
 
-            lancamento.CorTexto = ObterCorTexto(lancamento.TipoLancamento);
+            if(lancamento.DtLancamento.Year == MesSelecionado?.Ano && lancamento.DtLancamento.Month == MesSelecionado?.Mes)
+            {
 
-            var index = Lancamentos
-                .TakeWhile(x => x.DtLancamento > lancamento.DtLancamento)
-                .Count();
+                lancamento.CorTexto = ObterCorTexto(lancamento.TipoLancamento);
 
-            Lancamentos.Insert(index, lancamento);
+                var index = Lancamentos
+                    .TakeWhile(x => x.DtLancamento > lancamento.DtLancamento)
+                    .Count();
+
+                Lancamentos.Insert(index, lancamento);
+            }
+
         }
 
         public async Task RemoverLancamentoAsync(int id)

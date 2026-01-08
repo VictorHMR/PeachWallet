@@ -33,6 +33,7 @@ public partial class LancamentoPopup
             txtValor.Text = _lancamento.Valor.ToString("N2");
             dpdTipoLancamento.SelectedItem = ((List<TipoLancamentoPickerItem>)dpdTipoLancamento.ItemsSource)
                 .FirstOrDefault(c => c.Id == _lancamento.TipoLancamento);
+            pkDataLancamento.Date = _lancamento.DtLancamento;
         }
 
         switch (_mode)
@@ -49,14 +50,6 @@ public partial class LancamentoPopup
                 btnDelete.IsVisible = true;
                 break;
 
-            case PopupMode.Delete:
-                TitleLabel.Text = "Excluir Lançamento";
-                btnSubmit.IsVisible = false;
-                btnDelete.IsVisible = true;
-                txtDescricao.IsEnabled = false;
-                txtValor.IsEnabled = false;
-                dpdTipoLancamento.IsEnabled = false;
-                break;
         }
     }
 
@@ -86,6 +79,7 @@ public partial class LancamentoPopup
                 dto.TipoLancamento = selected.Id;
                 dto.Descricao = txtDescricao.Text;
                 dto.Valor = double.TryParse(txtValor.Text, out double value) ? value : 0;
+                dto.DtLancamento = pkDataLancamento.Date ?? DateTime.Now;
             }
         }
 

@@ -76,13 +76,17 @@
                                 <validation:RequiredValidation
                                     Message="Digite uma descrição!" />
                             </material:TextField>
-
-                            <material:TextField Title="Valor"
-                                                 x:Name="txtValor"
-                                                 Keyboard="Numeric">
-                                <validation:RequiredValidation
-                                    Message="Digite um valor!" />
-                            </material:TextField>
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <material:TextField Title="Valor" x:Name="txtValor" Keyboard="Numeric" Grid.Column="0">
+                                    <validation:RequiredValidation Message="Digite um valor!" />
+                                </material:TextField>
+                                <material:DatePickerField 
+                                    Title="Data" 
+                                    x:Name="pkDataLancamento" 
+                                    Grid.Column="1" 
+                                    Format="dd/MM/yy" 
+                                    Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.Calendar}}"/>
+                            </Grid>
 
                             <material:DropdownField
                                 x:Name="dpdTipoLancamento"
