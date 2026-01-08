@@ -34,7 +34,7 @@
                       SelectionMode="None">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:LancamentoDTO">
-                                <Grid ColumnDefinitions="Auto,*,Auto, Auto" RowDefinitions="Auto,Auto" Padding="0,5" ColumnSpacing="10">
+                                <Grid ColumnDefinitions="Auto,*,Auto, Auto, Auto" RowDefinitions="Auto,Auto" Padding="0,5" ColumnSpacing="10">
                                     <Grid.GestureRecognizers>
                                         <TapGestureRecognizer
                                              Command="{Binding BindingContext.RemoverLancamentoCommand, Source={x:Reference Root}}"
@@ -62,14 +62,27 @@
                                         <Label Text="{Binding DtLancamento, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
                                                FontSize="14" />
                                     </VerticalStackLayout>
-
-                                    <!-- Percentual -->
-                                    <Label Grid.Column="2"
-                                           Text="{Binding ValorFormatado, StringFormat='{0:C}'}"
-                                           FontSize="14"
-                                           FontAttributes="Bold" 
-                                           TextColor="{Binding CorTexto}"
-                                           VerticalOptions="Center"/>
+                                    <VerticalStackLayout  Grid.Column="2" VerticalOptions="Center" IsVisible="{Binding FlLiquidado}">
+                                        <Image WidthRequest="20" HeightRequest="20">
+                                            <Image.Source>
+                                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.CalendarCheck}" Color="{StaticResource White}" />
+                                            </Image.Source>
+                                        </Image>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout  Grid.Column="3">
+                                        <Label
+                                               Text="{Binding ValorFormatado, StringFormat='{0:C}'}"
+                                               FontSize="14"
+                                               FontAttributes="Bold" 
+                                               TextColor="{Binding CorTexto}"
+                                               VerticalOptions="Center"/>
+                                        <Label
+                                            Text="{Binding CreditoDebito}"
+                                            TextColor="{StaticResource Gray100}" 
+                                            FontSize="12" 
+                                            HorizontalOptions="End"/>
+                                    </VerticalStackLayout>
+   
 
                                 </Grid>
                             </DataTemplate>

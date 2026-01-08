@@ -65,5 +65,13 @@ namespace PeachWallet.Models
                 return $"{sinal}{valor:C}";
             }
         }
+
+        public string CreditoDebito
+        {
+            get
+            {
+                return FlCredito ? "Crédito" : "Débito";
+            }
+        }
     }
 }
