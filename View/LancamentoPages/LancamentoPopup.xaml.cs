@@ -3,6 +3,7 @@ using PeachWallet.Models;
 using PeachWallet.Utils;
 using System.Threading.Channels;
 using System.Windows.Input;
+using UraniumUI.Material.Controls;
 
 namespace PeachWallet.View;
 
@@ -18,10 +19,12 @@ public partial class LancamentoPopup
         _mode = mode;
         _onSubmit = onSubmit;
         _lancamento = lancamento;
+
         dpdTipoLancamento.ItemsSource = Enum.GetValues(typeof(TiposLancamento))
             .Cast<TiposLancamento>()
             .Select(e => new TipoLancamentoPickerItem { Display = e.ToString(), Id = e })
             .ToList();
+
         dpdTipoLancamento.ItemDisplayBinding = new Binding("Display");
 
         inputForm.SubmitCommand = new Command(OnSubmitClicked);
@@ -34,22 +37,7 @@ public partial class LancamentoPopup
             dpdTipoLancamento.SelectedItem = ((List<TipoLancamentoPickerItem>)dpdTipoLancamento.ItemsSource)
                 .FirstOrDefault(c => c.Id == _lancamento.TipoLancamento);
             pkDataLancamento.Date = _lancamento.DtLancamento;
-        }
-
-        switch (_mode)
-        {
-            case PopupMode.Create:
-                TitleLabel.Text = "Novo Lançamento";
-                btnSubmit.Text = "Criar";
-                btnDelete.IsVisible = false;
-                break;
-
-            case PopupMode.Update:
-                TitleLabel.Text = "Editar Lançamento";
-                btnSubmit.Text = "Salvar";
-                btnDelete.IsVisible = true;
-                break;
-
+            swtCred.IsToggled = _lancamento.FlCredito;
         }
     }
 
@@ -71,41 +59,41 @@ public partial class LancamentoPopup
         }
         LancamentoDTO dto = _lancamento ?? new LancamentoDTO();
 
-        if (_mode != PopupMode.Delete)
+        if (dpdTipoLancamento.SelectedItem is TipoLancamentoPickerItem selected)
         {
-
-            if (dpdTipoLancamento.SelectedItem is TipoLancamentoPickerItem selected)
-            {
-                dto.TipoLancamento = selected.Id;
-                dto.Descricao = txtDescricao.Text;
-                dto.Valor = double.TryParse(txtValor.Text, out double value) ? value : 0;
-                dto.DtLancamento = pkDataLancamento.Date ?? DateTime.Now;
-            }
+            dto.TipoLancamento = selected.Id;
+            dto.Descricao = txtDescricao.Text;
+            dto.Valor = double.TryParse(txtValor.Text, out double value) ? value : 0;
+            dto.DtLancamento = pkDataLancamento.Date ?? DateTime.Now;
+            dto.FlCredito = swtCred.IsToggled;
         }
 
         _onSubmit?.Invoke(dto, _mode);
         MopupService.Instance.PopAsync();
     }
 
-    public async void OnDeleteClicked(object sender, EventArgs e)
+
+    private void dpdTipoLanc_SelectedItemChanged(object sender, object e)
     {
-        bool confirmar = await Application.Current.MainPage.DisplayAlert(
-            "Excluir lançamento",
-            "Tem certeza que deseja excluir este lançamento?",
-            "Excluir",
-            "Cancelar"
-        );
-
-        if (!confirmar)
+        if (dpdTipoLancamento.SelectedItem is not TipoLancamentoPickerItem selected)
             return;
+    
+        switch (selected.Id)
+        {
+            case TiposLancamento.Saida:
+                swtCred.IsToggled = true;
+                swContainer.IsVisible = true;
+                Grid.SetColumnSpan(dpdTipoLancamento, 1);
+                break;
 
-        _onSubmit?.Invoke(_lancamento, PopupMode.Delete);
-        await MopupService.Instance.PopAsync();
+            default:
+                swtCred.IsToggled = false;
+                swContainer.IsVisible = false;
+                Grid.SetColumnSpan(dpdTipoLancamento, 2);
+                break;
+        }
     }
-
 }
-
-
 public class TipoLancamentoPickerItem
 {
     public TiposLancamento Id { get; set; }

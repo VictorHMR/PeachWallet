@@ -23,7 +23,7 @@
 
 
             <VerticalStackLayout Spacing="10">
-                    <Label Text="Lista de gastos"
+                    <Label Text="Movimentações"
                            FontAttributes="Bold"
                            FontSize="20" />
                     <ScrollView HeightRequest="400">
@@ -37,7 +37,7 @@
                                 <Grid ColumnDefinitions="Auto,*,Auto, Auto" RowDefinitions="Auto,Auto" Padding="0,5" ColumnSpacing="10">
                                     <Grid.GestureRecognizers>
                                         <TapGestureRecognizer
-                                             Command="{Binding BindingContext.AbrirPopupLancamentoCommand, Source={x:Reference Root}}"
+                                             Command="{Binding BindingContext.RemoverLancamentoCommand, Source={x:Reference Root}}"
                                             CommandParameter="{Binding .}" />
                                     </Grid.GestureRecognizers>
                                     

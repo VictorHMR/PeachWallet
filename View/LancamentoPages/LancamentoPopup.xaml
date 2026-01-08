@@ -24,6 +24,7 @@
                 <!-- HEADER -->
                 <Grid Grid.Row="0" 
                       ColumnDefinitions="*,Auto"
+                      HorizontalOptions="Center"
                       Margin="0">
 
                     <Label x:Name="TitleLabel"
@@ -32,31 +33,6 @@
                            FontAttributes="Bold"
                            Padding="20,10"
                            VerticalOptions="Center" />
-
-                    <Border x:Name="btnDelete"
-                            Grid.Column="1"
-                            BackgroundColor="Transparent"
-                            StrokeThickness="0"
-                            Padding="20,10"
-                            VerticalOptions="Center">
-
-                        <Image WidthRequest="30"
-                               HeightRequest="30"
-                               Aspect="AspectFit">
-
-                            <Image.Source>
-                                <FontImageSource
-                                    FontFamily="FASolid"
-                                    Glyph="{x:Static fa:Solid.TrashCan}"
-                                    Color="{StaticResource White}" />
-                            </Image.Source>
-
-                            <Image.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnDeleteClicked" />
-                            </Image.GestureRecognizers>
-
-                        </Image>
-                    </Border>
                 </Grid>
                 
                 <BoxView StyleClass="Divider" Grid.Row="1" Margin="0"  Color="{StaticResource Gray300}" />
@@ -87,17 +63,24 @@
                                     Format="dd/MM/yy" 
                                     Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.Calendar}}"/>
                             </Grid>
+                            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                                <material:DropdownField Grid.Column="0" Grid.ColumnSpan="2" SelectedItemChanged="dpdTipoLanc_SelectedItemChanged"
+                                        x:Name="dpdTipoLancamento"
+                                        Title="Tipo"
+                                        Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.AngleDown}}">
 
-                            <material:DropdownField
-                                x:Name="dpdTipoLancamento"
-                                Title="Tipo de lançamento"
-                                Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.AngleDown}}">
+                                    <material:DropdownField.Validations>
+                                        <validation:RequiredValidation
+                                            Message="Selecione um Tipo" />
+                                    </material:DropdownField.Validations>
+                                </material:DropdownField>
+                                
+                                <Grid ColumnDefinitions="*, auto" Grid.Column="1" x:Name="swContainer" IsVisible="False">
+                                    <Label Text="Compra no Crédito" FontSize="16" TextColor="{StaticResource Gray200}" VerticalOptions="Center" Grid.Column="0" Grid.Row="0" />
+                                    <Switch x:Name="swtCred"  Grid.Column="1" Grid.Row="0"/>
+                                 </Grid>
 
-                                <material:DropdownField.Validations>
-                                    <validation:RequiredValidation
-                                        Message="Selecione um Tipo" />
-                                </material:DropdownField.Validations>
-                            </material:DropdownField>
+                            </Grid>
 
                         </VerticalStackLayout>
 

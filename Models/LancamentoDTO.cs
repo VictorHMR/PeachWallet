@@ -25,6 +25,10 @@ namespace PeachWallet.Models
         private int? idLancamentoRecorrente;
         [ObservableProperty]
         private Color corTexto;
+        [ObservableProperty]
+        private bool flCredito;
+        [ObservableProperty]
+        private bool flLiquidado;
         public string IconeLancamento
         {
             get
