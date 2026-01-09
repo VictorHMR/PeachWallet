@@ -21,6 +21,74 @@
                 SelectedItem="{Binding MesSelecionado}"
                 SelectionChangedCommand="{Binding MesSelecionadoCommand}" />
 
+            <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
+                <Border Grid.Row="0" Grid.Column="0"
+                        BackgroundColor="{StaticResource NegativeDark}"
+                        StrokeThickness="0" StrokeShape="RoundRectangle 13" 
+                        Padding="7"
+                        VerticalOptions="Center">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*" >
+                        <Image WidthRequest="20" HeightRequest="20" Grid.Row="0" Grid.Column="0">
+                            <Image.Source>
+                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.MoneyBillTransfer}" Color="{StaticResource NegativeLight}" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="Gastos" Grid.Row="0" Grid.Column="1" FontSize="16" FontAttributes="Bold" Margin="10,0" />
+                        <VerticalStackLayout Grid.Row="1" Grid.ColumnSpan="2">
+                            <Label Text="{Binding GastosPeriodo, StringFormat='Débito: {0:C}'}"  FontSize="15" FontAttributes="Bold" Margin="10,0" />
+                            <Label Text="{Binding GastosCreditoPeriodo, StringFormat='Crédito: {0:C}'}"  FontSize="15" FontAttributes="Bold" Margin="10,0" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1"
+                        BackgroundColor="{StaticResource InvestmentDark}"
+                        StrokeThickness="0" StrokeShape="RoundRectangle 13" 
+                        Padding="7"
+                        VerticalOptions="Center">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*" RowSpacing="10">
+                        <Image WidthRequest="20" HeightRequest="20" Grid.Row="0" Grid.Column="0">
+                            <Image.Source>
+                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.MoneyBillTrendUp}" Color="{StaticResource InvestmentLight}" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="Investido" Grid.Row="0" Grid.Column="1" FontSize="16" FontAttributes="Bold" Margin="10,0" />
+                        <Label Text="{Binding InvestidoPeriodo, StringFormat='{0:C}'}" Grid.Row="1" Grid.ColumnSpan="2" FontSize="22" FontAttributes="Bold" Margin="10,0" />
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0"
+                        BackgroundColor="{StaticResource PositiveDark}"
+                        StrokeThickness="0" StrokeShape="RoundRectangle 13" 
+                        Padding="7"
+                        VerticalOptions="Center">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*" RowSpacing="10">
+                        <Image WidthRequest="20" HeightRequest="20" Grid.Row="0" Grid.Column="0">
+                            <Image.Source>
+                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.MoneyBill}" Color="{StaticResource PositiveLight}" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="Entradas" Grid.Row="0" Grid.Column="1" FontSize="16" FontAttributes="Bold" Margin="10,0" />
+                        <Label Text="{Binding EntradasPeriodo, StringFormat='{0:C}'}" Grid.Row="1" Grid.ColumnSpan="2" FontSize="22" FontAttributes="Bold" Margin="10,0" />
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1"
+                        BackgroundColor="{StaticResource AvaliableDark}"
+                        StrokeThickness="0" StrokeShape="RoundRectangle 13" 
+                        Padding="7"
+                        VerticalOptions="Center">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*" RowSpacing="0">
+                        <Image WidthRequest="20" HeightRequest="20" Grid.Row="0" Grid.Column="0">
+                            <Image.Source>
+                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.MoneyBill}" Color="{StaticResource AvaliableLight}" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="Disponivel" Grid.Row="0" Grid.Column="1" FontSize="16" FontAttributes="Bold" Margin="10,0" />
+                        <VerticalStackLayout Grid.Row="1" Grid.ColumnSpan="2">
+                            <Label Text="{Binding DisponivelPeriodo, StringFormat='{0:C}'}"  FontSize="18" FontAttributes="Bold" Margin="10,0" />
+                            <Label Text="{Binding SobrasPeriodo, StringFormat='Esse Mês: {0:C}'}"  FontSize="12" FontAttributes="Bold" Margin="10,0" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+            </Grid>
 
             <VerticalStackLayout Spacing="10">
                     <Label Text="Movimentações"
@@ -91,7 +159,7 @@
                 </ScrollView>
 
                 </VerticalStackLayout>
-            </VerticalStackLayout>
+        </VerticalStackLayout>
         <ImageButton BackgroundColor="{StaticResource Primary}"
                      CornerRadius="12"
                      WidthRequest="60"

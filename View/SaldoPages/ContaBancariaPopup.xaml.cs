@@ -63,5 +63,17 @@ public partial class ContaBancariaPopup
         MopupService.Instance.PopAsync();
     }
 
+    private void swtContaMov_Toggled(object sender, ToggledEventArgs e)
+    {
+        swtContaInvest.Toggled -= swtContaInvest_Toggled;
+        swtContaInvest.IsToggled = false;
+        swtContaInvest.Toggled += swtContaInvest_Toggled;
+    }
 
+    private void swtContaInvest_Toggled(object sender, ToggledEventArgs e)
+    {
+        swtContaMov.Toggled -= swtContaMov_Toggled;
+        swtContaMov.IsToggled = false;
+        swtContaMov.Toggled += swtContaMov_Toggled;
+    }
 }

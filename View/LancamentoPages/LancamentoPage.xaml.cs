@@ -22,8 +22,8 @@ public partial class LancamentoPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadMesesAsync();
-        await _viewModel.ReloadLancamentoAsync();
+        await _viewModel.InitializeVMAsync();
+
     }
 
 

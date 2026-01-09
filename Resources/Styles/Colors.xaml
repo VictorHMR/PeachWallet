@@ -26,7 +26,7 @@
 
     <Color x:Key="OffBlack">#121212</Color>
     <Color x:Key="MidnightBlue">#1E1F24</Color>
-    
+
     <Color x:Key="Gray100">#F2F2F2</Color>
     <Color x:Key="Gray200">#D9D9D9</Color>
     <Color x:Key="Gray300">#BFBFBF</Color>
@@ -37,13 +37,22 @@
     <Color x:Key="Gray900">#262626</Color>
     <Color x:Key="Gray950">#202020</Color>
 
-    
+
     <Color x:Key="Positive">#6FCF97</Color>
+    <Color x:Key="PositiveLight">#96c8be</Color>
+    <Color x:Key="PositiveDark">#2f393a</Color>
     <!-- Entradas / Sobras -->
     <Color x:Key="Negative">#EB5757</Color>
+    <Color x:Key="NegativeLight">#f3918d</Color>
+    <Color x:Key="NegativeDark">#4e2a35</Color>
     <!-- Gastos -->
     <Color x:Key="Investment">#8A6DAA</Color>
+    <Color x:Key="InvestmentLight">#CBB7E2</Color>
+    <Color x:Key="InvestmentDark">#3B2E4A</Color>
     <!-- Investimentos -->
+    <Color x:Key="AvaliableLight">#eee5bf</Color>
+    <Color x:Key="AvaliableDark">#3b3931</Color>
+    <!-- Disponivel -->
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />

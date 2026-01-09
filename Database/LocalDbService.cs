@@ -13,6 +13,7 @@ namespace PeachWallet.Database
     public class LocalDbService
     {
         private readonly SQLiteAsyncConnection _connection;
+        public SQLiteAsyncConnection Connection => _connection;
         private const int CurrentDbVersion = 2;
 
         private bool _initialized;
@@ -175,6 +176,26 @@ namespace PeachWallet.Database
                          .Take(pageSize);
 
             return await query.ToListAsync();
+        }
+
+        public async Task<double> SumValueAsync<T>(Expression<Func<T, bool>>? predicate, Expression<Func<T, double>> field) where T : new()
+        {
+            await EnsureInitializedAsync();
+
+            if (_connection == null)
+                return 0;
+
+            List<T> list;
+
+            if (predicate != null)
+                list = await _connection.Table<T>().Where(predicate).ToListAsync();
+            else
+                list = await _connection.Table<T>().ToListAsync();
+
+            var selector = field.Compile();
+
+            return list.Sum(selector);
+
         }
 
     }

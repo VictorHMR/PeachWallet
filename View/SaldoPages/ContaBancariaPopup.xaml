@@ -61,9 +61,9 @@
 
                             <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
                                 <Label Text="Conta Principal" FontSize="16" TextColor="{StaticResource Gray200}" VerticalOptions="Center" Grid.Column="0" Grid.Row="0" />
-                                <Switch x:Name="swtContaMov"  Grid.Column="1" Grid.Row="0"/>
+                                <Switch x:Name="swtContaMov"  Grid.Column="1" Grid.Row="0" Toggled="swtContaMov_Toggled" />
                                 <Label Text="Conta de investimentos" FontSize="16" TextColor="{StaticResource Gray200}" VerticalOptions="Center" Grid.Column="0" Grid.Row="1" />
-                                <Switch x:Name="swtContaInvest"  Grid.Column="1" Grid.Row="1"/>
+                                <Switch x:Name="swtContaInvest"  Grid.Column="1" Grid.Row="1" Toggled="swtContaInvest_Toggled"/>
                             </Grid>
 
                         </VerticalStackLayout>

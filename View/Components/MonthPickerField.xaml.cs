@@ -67,7 +67,7 @@ public partial class MonthPickerField : ContentView
     public string DisplayText
     {
         get => (string)GetValue(DisplayTextProperty);
-        private set => SetValue(DisplayTextProperty, value);
+        set => SetValue(DisplayTextProperty, value);
     }
 
     // ======================

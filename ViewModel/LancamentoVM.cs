@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Java.Time;
 using Mopups.Services;
 using PeachWallet.Database;
 using PeachWallet.Database.Models;
+using PeachWallet.Database.Repository;
 using PeachWallet.Models;
 using PeachWallet.Utils;
 using PeachWallet.View;
@@ -18,6 +20,7 @@ namespace PeachWallet.ViewModel
     {
         private readonly LocalDbService _connection;
 
+        private readonly RelatorioRepository _relatorioRepository;
 
         public ObservableCollection<LancamentoDTO> Lancamentos { get; } = [];
         [ObservableProperty]
@@ -26,14 +29,44 @@ namespace PeachWallet.ViewModel
         [ObservableProperty]
         private MesLancamentoDTO? mesSelecionado;
 
+        [ObservableProperty]
+        private double gastosPeriodo;
+        [ObservableProperty]
+        private double gastosCreditoPeriodo;
+        [ObservableProperty]
+        private double investidoPeriodo;
+        [ObservableProperty]
+        private double entradasPeriodo;
+        [ObservableProperty]
+        private double disponivelPeriodo;
+        [ObservableProperty]
+        private double sobrasPeriodo;
+
         private bool _dataCompleted;
         private int _pageSize = 10;
         private int _pageNumber = 1;
 
+        ContaBancaria contaMov;
+        Configs configs;
+        ContaBancaria contaInvest;
 
         public LancamentoVM(LocalDbService connection)
         {
             _connection = connection;
+            _relatorioRepository = new RelatorioRepository(_connection);
+        }
+
+        public async Task InitializeVMAsync()
+        {
+            configs = await _connection.GetAsync<Configs>();
+            if (configs.IdContaMovimentacao is not null)
+                contaMov = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaMovimentacao);
+            if (configs.IdContaInvestimento is not null)
+                contaInvest = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaInvestimento);
+
+            await LoadMesesAsync();
+            await ReloadLancamentoAsync();
+            await LoadRelatorio();
         }
 
         #region COMMANDS
@@ -113,6 +146,7 @@ namespace PeachWallet.ViewModel
                                     .Count();
 
                                 Lancamentos.Insert(index, lancamento);
+                                await LoadRelatorio();
                             }
 
                             await LoadMesesAsync();
@@ -136,18 +170,14 @@ namespace PeachWallet.ViewModel
                 return;
             if (lancamento.FlLiquidado)
             {
-                Configs configs = await _connection.GetAsync<Configs>();
                 if (configs.IdContaMovimentacao is not null)
                 {
-                    ContaBancaria contaMov = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaMovimentacao);
-
                     if (lancamento.TipoLancamento == TiposLancamento.Saida)
                         contaMov.Saldo += lancamento.Valor;
                     else if (lancamento.TipoLancamento == TiposLancamento.Entrada)
                         contaMov.Saldo -= lancamento.Valor;
                     else if (lancamento.TipoLancamento == TiposLancamento.Investimento && configs.IdContaInvestimento is not null)
                     {
-                        ContaBancaria contaInvest = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaInvestimento);
                         contaMov.Saldo += lancamento.Valor;
                         contaInvest.Saldo -= lancamento.Valor;
                         await _connection.UpdateAsync(contaInvest);
@@ -158,12 +188,13 @@ namespace PeachWallet.ViewModel
                 }
             }
 
-
             await _connection.DeleteAsync<Lancamento>(lancamento.IdLancamento);
 
             var item = Lancamentos.FirstOrDefault(x => x.IdLancamento == lancamento.IdLancamento);
             if (item != null)
                 Lancamentos.Remove(item);
+            if (lancamento.DtLancamento.Year == MesSelecionado.Ano && lancamento.DtLancamento.Month == MesSelecionado.Mes)
+                await LoadRelatorio();
         }
 
         [RelayCommand]
@@ -182,6 +213,7 @@ namespace PeachWallet.ViewModel
                 return;
             MesSelecionado = mes;
             await ReloadLancamentoAsync();
+            await LoadRelatorio();
         }
         #endregion
 
@@ -242,9 +274,6 @@ namespace PeachWallet.ViewModel
             if(configs.IdContaInvestimento is null)
                 return atualizado;
 
-            ContaBancaria contaMov = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaMovimentacao);
-            ContaBancaria contaInvest = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaInvestimento);
-
             if (!lancamento.FlCredito && !lancamento.FlLiquidado && lancamento.DtLancamento.Date <= DateTime.Now.Date)
             {
                 if(lancamento.TipoLancamento == TiposLancamento.Entrada)
@@ -264,6 +293,34 @@ namespace PeachWallet.ViewModel
             }
 
                 return atualizado;
+        }
+
+        public async Task LoadRelatorio()
+        {
+            bool PeriodoAtual = MesSelecionado.Ano == DateTime.Now.Year && MesSelecionado.Mes == DateTime.Now.Month;
+
+            ResumoMensalDTO resumo = await _relatorioRepository.GetResumoMes(MesSelecionado.Ano, MesSelecionado.Mes);
+            EntradasPeriodo = resumo.EntradasLiquidadas + resumo.EntradasPendentes;
+            GastosPeriodo = resumo.GastosLiquidados + resumo.GastosPendentes;
+            GastosCreditoPeriodo = resumo.GastosCreditoLiquidados + resumo.GastosCreditoPendentes;
+            InvestidoPeriodo = resumo.InvestimentoLiquidados + resumo.InvestimentoPendentes;
+
+            SobrasPeriodo = resumo.ValorDisponivelMes;
+            if(PeriodoAtual)
+                DisponivelPeriodo = contaMov.Saldo + SobrasPeriodo;
+            else
+            {
+                double SobrasMesesAnteriores = 0;
+                foreach (var mes in MesesDisponiveis)
+                {
+                    if (mes.Ano < MesSelecionado.Ano || (mes.Ano == MesSelecionado.Ano && mes.Mes < MesSelecionado.Mes))
+                    {
+                        ResumoMensalDTO resumoMesAnterior = await _relatorioRepository.GetResumoMes(mes.Ano, mes.Mes);
+                        SobrasMesesAnteriores += resumoMesAnterior.ValorDisponivelMes;
+                    }
+                }
+                DisponivelPeriodo = contaMov.Saldo + SobrasMesesAnteriores + SobrasPeriodo;
+            }
         }
         #endregion
     }
