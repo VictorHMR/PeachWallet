@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Java.Time;
 using Mopups.Services;
 using PeachWallet.Database;
 using PeachWallet.Database.Models;
-using PeachWallet.Database.Repository;
+using PeachWallet.Database.Repositories;
 using PeachWallet.Models;
+using PeachWallet.Services;
 using PeachWallet.Utils;
 using PeachWallet.View;
 using System;
@@ -21,6 +21,8 @@ namespace PeachWallet.ViewModel
         private readonly LocalDbService _connection;
 
         private readonly RelatorioRepository _relatorioRepository;
+
+        private readonly LiquidacaoService _liquidacaoService;
 
         public ObservableCollection<LancamentoDTO> Lancamentos { get; } = [];
         [ObservableProperty]
@@ -54,6 +56,7 @@ namespace PeachWallet.ViewModel
         {
             _connection = connection;
             _relatorioRepository = new RelatorioRepository(_connection);
+            _liquidacaoService = new LiquidacaoService(_connection);
         }
 
         public async Task InitializeVMAsync()
@@ -124,9 +127,7 @@ namespace PeachWallet.ViewModel
                     {
                         if (mode == PopupMode.Create && lancamento != null)
                         {
-                            lancamento.FlLiquidado = await AtualizarSaldoConta(lancamento);
-
-                            lancamento.IdLancamento = await _connection.CreateAsync(new Lancamento
+                            Lancamento lancamentoDB = new Lancamento
                             {
                                 Descricao = lancamento.Descricao,
                                 DtLancamento = lancamento.DtLancamento,
@@ -134,11 +135,14 @@ namespace PeachWallet.ViewModel
                                 Valor = lancamento.Valor,
                                 IdLancamentoRecorrente = lancamento.IdLancamentoRecorrente,
                                 FlCredito = lancamento.FlCredito,
-                                FlLiquidado = lancamento.FlLiquidado,
-                            });
+                            };
+
+                            lancamentoDB.FlLiquidado = await _liquidacaoService.AtualizarSaldoConta(lancamentoDB, contaMov, contaInvest, configs, DateTime.Now);
+                            lancamento.IdLancamento = await _connection.CreateAsync(lancamentoDB);
+
+                            lancamento.FlLiquidado = lancamentoDB.FlLiquidado;
                             lancamento.CorTexto = ObterCorTexto(lancamento.TipoLancamento);
 
-                            
                             if(lancamento.DtLancamento.Year == MesSelecionado.Ano && lancamento.DtLancamento.Month == MesSelecionado.Mes)
                             {
                                 var index = Lancamentos
@@ -262,37 +266,6 @@ namespace PeachWallet.ViewModel
                 MesSelecionado = mesAtual;
             else
                 MesSelecionado = MesSelecionado == mesAtual ? mesAtual : MesSelecionado;
-        }
-
-        public async Task<bool> AtualizarSaldoConta(LancamentoDTO lancamento)
-        {
-            bool atualizado = false;
-            Configs configs = await _connection.GetAsync<Configs>();
-
-            if(configs.IdContaMovimentacao is null)
-                return atualizado;
-            if(configs.IdContaInvestimento is null)
-                return atualizado;
-
-            if (!lancamento.FlCredito && !lancamento.FlLiquidado && lancamento.DtLancamento.Date <= DateTime.Now.Date)
-            {
-                if(lancamento.TipoLancamento == TiposLancamento.Entrada)
-                    contaMov.Saldo += lancamento.Valor;
-                else
-                    contaMov.Saldo -= lancamento.Valor;
-
-                await _connection.UpdateAsync(contaMov);
-
-                if(lancamento.TipoLancamento == TiposLancamento.Investimento)
-                {
-                    contaInvest.Saldo += lancamento.Valor;
-                    await _connection.UpdateAsync(contaInvest);
-                }
-
-                atualizado = true;
-            }
-
-                return atualizado;
         }
 
         public async Task LoadRelatorio()

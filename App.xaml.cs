@@ -1,12 +1,18 @@
-﻿namespace PeachWallet
+﻿using PeachWallet.Services;
+
+namespace PeachWallet
 {
     public partial class App : Application
     {
-        public App()
+        public App(LiquidacaoService liquidacaoService)
         {
             InitializeComponent();
             UserAppTheme = AppTheme.Dark;
 
+            Task.Run(async () =>
+            {
+                await liquidacaoService.LiquidarLancamentosVencidosAsync(DateTime.Today.AddDays(2));
+            });
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

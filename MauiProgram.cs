@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Handlers;
 using Mopups.Hosting;
 using PeachWallet.Database;
+using PeachWallet.Services;
 using UraniumUI;
 
 namespace PeachWallet
@@ -40,6 +41,7 @@ namespace PeachWallet
             });
             builder.Services.AddMopupsDialogs();
             builder.Services.AddSingleton<LocalDbService>();
+            builder.Services.AddSingleton<LiquidacaoService>();
             CurrentApp = builder.Build();
             return CurrentApp;
         }

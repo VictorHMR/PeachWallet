@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PeachWallet.Database.Repository
+namespace PeachWallet.Database.Repositories
 {
     public class RelatorioRepository
     {
