@@ -17,7 +17,7 @@
         <Border
             BackgroundColor="{StaticResource Gray600}"
             StrokeThickness="0"
-            StrokeShape="RoundRectangle 12" MinimumWidthRequest="1000" Margin="40, 0">
+            StrokeShape="RoundRectangle 12" MinimumWidthRequest="1000" Margin="30, 0">
 
             <Grid RowDefinitions="Auto,*, Auto" RowSpacing="0">
 

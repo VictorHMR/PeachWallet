@@ -16,13 +16,14 @@
         <Border
             BackgroundColor="{StaticResource Gray600}"
             StrokeThickness="0"
-            StrokeShape="RoundRectangle 12" MinimumWidthRequest="1000" Margin="40, 0">
+            StrokeShape="RoundRectangle 12" MinimumWidthRequest="1000" Margin="30, 0">
 
             <Grid RowDefinitions="Auto,Auto, Auto">
 
                 <!-- HEADER -->
                 <Grid Grid.Row="0"
                       ColumnDefinitions="*,Auto"
+                      HorizontalOptions="Center"
                       Margin="0">
 
                     <Label x:Name="TitleLabel"

@@ -72,7 +72,6 @@ public partial class LancamentoPopup
         MopupService.Instance.PopAsync();
     }
 
-
     private void dpdTipoLanc_SelectedItemChanged(object sender, object e)
     {
         if (dpdTipoLancamento.SelectedItem is not TipoLancamentoPickerItem selected)

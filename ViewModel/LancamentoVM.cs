@@ -280,7 +280,7 @@ namespace PeachWallet.ViewModel
 
             SobrasPeriodo = resumo.ValorDisponivelMes;
             if(PeriodoAtual)
-                DisponivelPeriodo = contaMov.Saldo + SobrasPeriodo;
+                DisponivelPeriodo = contaMov.Saldo + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
             else
             {
                 double SobrasMesesAnteriores = 0;
@@ -289,10 +289,10 @@ namespace PeachWallet.ViewModel
                     if (mes.Ano < MesSelecionado.Ano || (mes.Ano == MesSelecionado.Ano && mes.Mes < MesSelecionado.Mes))
                     {
                         ResumoMensalDTO resumoMesAnterior = await _relatorioRepository.GetResumoMes(mes.Ano, mes.Mes);
-                        SobrasMesesAnteriores += resumoMesAnterior.ValorDisponivelMes;
+                        SobrasMesesAnteriores += resumoMesAnterior.EntradasPendentes - resumoMesAnterior.GastosPendentes - resumoMesAnterior.GastosCreditoPendentes - resumoMesAnterior.InvestimentoPendentes;
                     }
                 }
-                DisponivelPeriodo = contaMov.Saldo + SobrasMesesAnteriores + SobrasPeriodo;
+                DisponivelPeriodo = contaMov.Saldo + SobrasMesesAnteriores + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
             }
         }
         #endregion
