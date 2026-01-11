@@ -30,6 +30,9 @@
     <Tab Title="Saldo" Style="{StaticResource TabStyle}" Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.Coins}}">
         <ShellContent ContentTemplate="{DataTemplate views:SaldoPage}" />
     </Tab>
+    <Tab Title="Relatório" Style="{StaticResource TabStyle}" Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.MoneyBill1Wave}}">
+        <ShellContent ContentTemplate="{DataTemplate views:RelatorioAnualPage}" />
+    </Tab>
     <Tab Title="Configurações" Style="{StaticResource TabStyle}" Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.Gear}}">
         <ShellContent ContentTemplate="{DataTemplate views:ConfigsPage}" />
     </Tab>

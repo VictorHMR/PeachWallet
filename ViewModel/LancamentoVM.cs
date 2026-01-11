@@ -26,10 +26,10 @@ namespace PeachWallet.ViewModel
 
         public ObservableCollection<LancamentoDTO> Lancamentos { get; } = [];
         [ObservableProperty]
-        private ObservableCollection<MesLancamentoDTO> mesesDisponiveis = [];
+        private ObservableCollection<MesAnoLancamentoDTO> mesesDisponiveis = [];
 
         [ObservableProperty]
-        private MesLancamentoDTO? mesSelecionado;
+        private MesAnoLancamentoDTO? mesSelecionado;
 
         [ObservableProperty]
         private double gastosPeriodo;
@@ -216,7 +216,7 @@ namespace PeachWallet.ViewModel
         }
 
         [RelayCommand]
-        private async Task MesSelecionadoAsync(MesLancamentoDTO mes)
+        private async Task MesSelecionadoAsync(MesAnoLancamentoDTO mes)
         {
             if (mes == null)
                 return;
@@ -238,9 +238,9 @@ namespace PeachWallet.ViewModel
             var meses = await _relatorioRepository.GetMesesComLancamentos();
 
             if (meses.Count() < 1 || !meses.Any(x=> x.Ano == today.Year && x.Mes == today.Month))
-                meses.Insert(0, new MesLancamentoDTO { Mes = today.Month, Ano = today.Year });
+                meses.Insert(0, new MesAnoLancamentoDTO { Mes = today.Month, Ano = today.Year });
 
-            MesesDisponiveis = new ObservableCollection<MesLancamentoDTO>(meses);
+            MesesDisponiveis = new ObservableCollection<MesAnoLancamentoDTO>(meses);
 
             var mesAtual = MesesDisponiveis.FirstOrDefault(x => x.Ano == today.Year && x.Mes == today.Month);
             if(MesSelecionado is null)
@@ -254,10 +254,10 @@ namespace PeachWallet.ViewModel
             bool PeriodoAtual = MesSelecionado.Ano == DateTime.Now.Year && MesSelecionado.Mes == DateTime.Now.Month;
 
             ResumoMensalDTO resumo = await _relatorioRepository.GetResumoMes(MesSelecionado.Ano, MesSelecionado.Mes);
-            EntradasPeriodo = resumo.EntradasLiquidadas + resumo.EntradasPendentes;
+            EntradasPeriodo = resumo.EntradaTotal;
             GastosPeriodo = resumo.GastosLiquidados + resumo.GastosPendentes;
             GastosCreditoPeriodo = resumo.GastosCreditoLiquidados + resumo.GastosCreditoPendentes;
-            InvestidoPeriodo = resumo.InvestimentoLiquidados + resumo.InvestimentoPendentes;
+            InvestidoPeriodo = resumo.InvestidoTotal;
 
             SobrasPeriodo = resumo.ValorDisponivelMes;
             if(PeriodoAtual)

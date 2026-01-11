@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PeachWallet.View.RelatorioAnualPage"
+             xmlns:models="clr-namespace:PeachWallet.Models"
+             xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:components="clr-namespace:PeachWallet.View.Components"
+             xmlns:vm="clr-namespace:PeachWallet.ViewModel"
+             Title="Relatório"
+             x:Name="Root"
+             Padding="{OnPlatform iOS='0,0,0,20', Android='0,0,0,20'}">
+
+    <Grid Padding="10, 0" RowSpacing="10" RowDefinitions="Auto,*">
+        <components:MonthPickerField
+            Grid.Row="0"
+            Margin="0,10,0,0"
+            WidthRequest="190"
+            DisplayMember="Display"
+            DisplayText="Display"
+            ItemsSource="{Binding AnosDisponiveis}"
+            SelectedItem="{Binding AnoSelecionado}"
+            SelectionChangedCommand="{Binding AnoSelecionadoCommand}" />
+        <!-- CARD DA TABELA -->
+        <ScrollView Grid.Row="1">
+            <Frame 
+                BackgroundColor="{StaticResource OffBlack}"
+                CornerRadius="16"
+                HasShadow="False"
+                Padding="0">
+
+                <VerticalStackLayout Spacing="0">
+                    <!-- HEADER -->
+                    <Grid
+                        Padding="12,10"
+                        ColumnDefinitions="30,*,*,*,*, *"
+                        BackgroundColor="{StaticResource Gray950}">
+
+                        <Label Text="Mês" TextColor="{StaticResource Gray300}"/>
+
+                        <Label Grid.Column="1"
+                               Text="Recebido"
+                               TextColor="{StaticResource Gray300}"
+                               HorizontalTextAlignment="End"/>
+
+                        <Label Grid.Column="2"
+                               Text="Investido"
+                               TextColor="{StaticResource Gray300}"
+                               HorizontalTextAlignment="End"/>
+
+                        <Label Grid.Column="3"
+                               Text="Gastos"
+                               TextColor="{StaticResource Negative}"
+                               HorizontalTextAlignment="End"/>
+
+                        <Label Grid.Column="4"
+                               Text="Sobras"
+                               TextColor="{StaticResource AvaliableLight}"
+                               HorizontalTextAlignment="End"/>
+
+                        <Label Grid.Column="5"
+                               Text="Saldo"
+                               TextColor="{StaticResource Positive}"
+                               HorizontalTextAlignment="End"/>
+                    </Grid>
+
+                    <!-- LISTA -->
+                    <CollectionView
+                        ItemsSource="{Binding RelatorioMensal}"
+                        SelectionMode="None"
+                        ItemsLayout="VerticalList"
+                        BackgroundColor="Transparent">
+
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <VerticalStackLayout>
+                                    <Grid
+                                            Padding="12,13"
+                                            ColumnDefinitions="30,*,*,*,*,*"
+                                            BackgroundColor="{StaticResource MidnightBlue}">
+                                        <Label Text="{Binding MesAbreviado}"  FontAutoScalingEnabled="True" />
+
+                                        <Label Grid.Column="1" FontAutoScalingEnabled="True"
+                                            Text="{Binding EntradaTotal, StringFormat='{0:N0}'}"
+                                            TextColor="{StaticResource Positive}"
+                                            HorizontalTextAlignment="End"/>
+
+                                        <Label Grid.Column="2" FontAutoScalingEnabled="True"
+                                           Text="{Binding InvestidoTotal, StringFormat='{0:N0}'}"
+                                           TextColor="{StaticResource Investment}"
+                                           HorizontalTextAlignment="End"/>
+
+                                        <Label Grid.Column="3" FontAutoScalingEnabled="True"
+                                           Text="{Binding GastoTotal, StringFormat='{0:N0}'}"
+                                           TextColor="{StaticResource Negative}"
+                                           HorizontalTextAlignment="End"/>
+
+                                        <Label Grid.Column="4" FontAutoScalingEnabled="True"
+                                           Text="{Binding ValorDisponivelMes, StringFormat='{0:N0}'}"
+                                           TextColor="{Binding CorTextoValorDisponivelMes}"
+                                           HorizontalTextAlignment="End"/>
+
+                                        <Label Grid.Column="5" FontAutoScalingEnabled="True"
+                                           Text="{Binding ValorDisponivelTotal, StringFormat='{0:N0}'}"
+                                           TextColor="{Binding CorTextoTotal}"
+                                           HorizontalTextAlignment="End"/>
+                                    </Grid>
+                                    <!-- DIVISOR -->
+                                    <BoxView HeightRequest="0.1"
+                                            BackgroundColor="{StaticResource Gray100}"
+                                            HorizontalOptions="Fill" />
+                                </VerticalStackLayout>
+
+
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- TOTAL -->
+                    <Grid
+                        Padding="14"
+                        ColumnDefinitions="30,*,*,*,*,*"
+                        BackgroundColor="{StaticResource Gray900}">
+
+                        <Label Text="TOTAL" FontSize="10" VerticalTextAlignment="Center"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Gray300}"/>
+
+                        <Label Grid.Column="1"
+                               Text="{Binding RelatorioTotal.EntradaTotal, StringFormat='{0:N0}'}"
+                               TextColor="{StaticResource Positive}"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="End"/>
+
+                        <Label Grid.Column="2"
+                               Text="{Binding RelatorioTotal.InvestidoTotal, StringFormat='{0:N0}'}"
+                               TextColor="{StaticResource Investment}"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="End"/>
+
+                        <Label Grid.Column="3"
+                               Text="{Binding RelatorioTotal.GastoTotal, StringFormat='{0:N0}'}"
+                               TextColor="{StaticResource Negative}"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="End"/>
+
+                        <Label Grid.Column="4"
+                               Text="{Binding RelatorioTotal.ValorDisponivelMes, StringFormat='{0:N0}'}"
+                               TextColor="{Binding RelatorioTotal.CorTextoValorDisponivelMes}"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="End"/>
+
+                        <Label Grid.Column="5" FontAutoScalingEnabled="True"
+                               Text="{Binding RelatorioTotal.ValorDisponivelTotal, StringFormat='{0:N0}'}"
+                               TextColor="{Binding RelatorioTotal.CorTextoTotal}"
+                               HorizontalTextAlignment="End"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+        </ScrollView>
+    
+    </Grid>
+
+</ContentPage>

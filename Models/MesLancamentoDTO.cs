@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-public class MesLancamentoDTO
+public class MesAnoLancamentoDTO
 {
     public int Ano { get; set; }
     public int Mes { get; set; }
@@ -9,8 +9,13 @@ public class MesLancamentoDTO
     {
         get
         {
-            var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Mes);
-            return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(monthName) + $"/{Ano % 100:D2}";
+            if(Mes != 0)
+            {
+                var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Mes);
+                return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(monthName) + $"/{Ano % 100:D2}";
+            }
+            else
+                return Ano.ToString();
         }
     }
 
