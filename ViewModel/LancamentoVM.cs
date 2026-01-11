@@ -161,7 +161,7 @@ namespace PeachWallet.ViewModel
                             await LoadMesesAsync();
                         }
                             
-                    })
+                    }, null, new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, DateTime.Now.Day))
             );
 
         }

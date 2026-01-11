@@ -12,13 +12,14 @@ public partial class LancamentoPopup
     private readonly Action<LancamentoDTO?, PopupMode> _onSubmit;
     private readonly PopupMode _mode;
     private readonly LancamentoDTO? _lancamento;
-    public LancamentoPopup(PopupMode mode, Action<LancamentoDTO?, PopupMode> onSubmit, LancamentoDTO? lancamento = null)
+    private readonly DateTime _dataInicial;
+    public LancamentoPopup(PopupMode mode, Action<LancamentoDTO?, PopupMode> onSubmit, LancamentoDTO? lancamento = null, DateTime? dataInicial = null)
     {
         InitializeComponent();
         _mode = mode;
         _onSubmit = onSubmit;
         _lancamento = lancamento;
-
+        _dataInicial = dataInicial ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
         dpdTipoLancamento.ItemsSource = Enum.GetValues(typeof(TiposLancamento))
             .Cast<TiposLancamento>()
             .Select(e => new TipoLancamentoPickerItem { Display = e.ToString(), Id = e })
@@ -28,6 +29,7 @@ public partial class LancamentoPopup
 
         inputForm.SubmitCommand = new Command(OnSubmitClicked);
 
+        pkDataLancamento.Date = _dataInicial;
 
         if (_lancamento != null)
         {
