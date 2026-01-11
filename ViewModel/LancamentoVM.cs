@@ -52,11 +52,11 @@ namespace PeachWallet.ViewModel
         Configs configs;
         ContaBancaria contaInvest;
 
-        public LancamentoVM(LocalDbService connection)
+        public LancamentoVM(LocalDbService connection, LiquidacaoService liquidacaoService)
         {
             _connection = connection;
             _relatorioRepository = new RelatorioRepository(_connection);
-            _liquidacaoService = new LiquidacaoService(_connection);
+            _liquidacaoService = liquidacaoService;
         }
 
         public async Task InitializeVMAsync()
@@ -82,12 +82,17 @@ namespace PeachWallet.ViewModel
             if (MesSelecionado == null)
                 return;
 
-            var firstDayOfMonth = new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, 1);
-            var firstDayOfNextMonth = firstDayOfMonth.AddMonths(1);
+            DateTime primeiroDiaMes = new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, 1);
+            DateTime primeiroDiaProximoMes = primeiroDiaMes.AddMonths(1);
+
+            DateTime dataFinalFatura = new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, configs.NrDiaFechamentoFatura ?? 1);
+            DateTime dataInicialFatura = dataFinalFatura.AddMonths(-1);
 
             Expression<Func<Lancamento, bool>> predicate = x =>
-                x.DtLancamento >= firstDayOfMonth &&
-                x.DtLancamento < firstDayOfNextMonth;
+                (x.DtLancamento >= primeiroDiaMes &&
+                x.DtLancamento < primeiroDiaProximoMes && !x.FlCredito) ||
+                (x.DtLancamento >= dataInicialFatura &&
+                x.DtLancamento < dataFinalFatura && x.FlCredito);
 
             var lstLancamentos = await _connection.SelectPagedAsync<Lancamento>(
                   pageNumber: _pageNumber,
@@ -110,7 +115,7 @@ namespace PeachWallet.ViewModel
                     Valor = item.Valor,
                     TipoLancamento = (TiposLancamento)item.TipoLancamento,
                     IdLancamentoRecorrente = item.IdLancamentoRecorrente,
-                    CorTexto = ObterCorTexto((TiposLancamento)item.TipoLancamento),
+                    CorTexto = LancamentoUtils.ObterCorTexto((TiposLancamento)item.TipoLancamento),
                     FlCredito = item.FlCredito,
                     FlLiquidado = item.FlLiquidado
                 });
@@ -141,9 +146,9 @@ namespace PeachWallet.ViewModel
                             lancamento.IdLancamento = await _connection.CreateAsync(lancamentoDB);
 
                             lancamento.FlLiquidado = lancamentoDB.FlLiquidado;
-                            lancamento.CorTexto = ObterCorTexto(lancamento.TipoLancamento);
+                            lancamento.CorTexto = LancamentoUtils.ObterCorTexto(lancamento.TipoLancamento);
 
-                            if(lancamento.DtLancamento.Year == MesSelecionado.Ano && lancamento.DtLancamento.Month == MesSelecionado.Mes)
+                            if (PertenceAoPeriodoSelecionado(lancamento))
                             {
                                 var index = Lancamentos
                                     .TakeWhile(x => x.DtLancamento > lancamento.DtLancamento)
@@ -223,26 +228,9 @@ namespace PeachWallet.ViewModel
 
         #region HELPERS
 
-        public Color ObterCorTexto(TiposLancamento tipoLancamento)
-        {
-            return tipoLancamento switch
-            {
-                TiposLancamento.Saida =>
-                    (Color)Application.Current.Resources["Negative"],
-
-                TiposLancamento.Entrada =>
-                    (Color)Application.Current.Resources["Positive"],
-
-                TiposLancamento.Investimento =>
-                    (Color)Application.Current.Resources["Investment"],
-
-                _ => Colors.White
-            };
-        }
-
         public async Task LoadMesesAsync()
         {
-            var lancamentos = await _connection.SelectAsync<Lancamento>();
+            var lancamentos = await _connection.SelectAsync<Lancamento>(); //Preciso mudar isso futuramente, como está sendo feito agora não é otimizado
             var today = DateTime.Now;
 
             var meses = lancamentos
@@ -295,6 +283,30 @@ namespace PeachWallet.ViewModel
                 DisponivelPeriodo = contaMov.Saldo + SobrasMesesAnteriores + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
             }
         }
+
+        private bool PertenceAoPeriodoSelecionado(LancamentoDTO lancamento)
+        {
+            DateTime primeiroDiaMes = new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, 1);
+            DateTime primeiroDiaProximoMes = primeiroDiaMes.AddMonths(1);
+
+            DateTime dataFinalFatura = new DateTime(
+                MesSelecionado.Ano,
+                MesSelecionado.Mes,
+                configs.NrDiaFechamentoFatura ?? 1
+            );
+
+            DateTime dataInicialFatura = dataFinalFatura.AddMonths(-1);
+
+            if (!lancamento.FlCredito)
+            {
+                return lancamento.DtLancamento >= primeiroDiaMes &&
+                       lancamento.DtLancamento < primeiroDiaProximoMes;
+            }
+
+            return lancamento.DtLancamento >= dataInicialFatura &&
+                   lancamento.DtLancamento < dataFinalFatura;
+        }
+
         #endregion
     }
 }

@@ -12,6 +12,7 @@ namespace PeachWallet
             Task.Run(async () =>
             {
                 await liquidacaoService.LiquidarLancamentosVencidosAsync(DateTime.Today);
+                await liquidacaoService.CriarLancamentoRecorrenteProxMes();
             });
         }
 

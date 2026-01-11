@@ -2,6 +2,7 @@ using Mopups.Services;
 using PeachWallet.Database;
 using PeachWallet.Database.Models;
 using PeachWallet.Models;
+using PeachWallet.Services;
 using PeachWallet.Utils;
 using PeachWallet.ViewModel;
 using System.Linq;
@@ -12,10 +13,10 @@ public partial class LancamentoPage : ContentPage
 {
     private LancamentoVM _viewModel;
 
-    public LancamentoPage(LocalDbService connection)
+    public LancamentoPage(LocalDbService connection, LiquidacaoService liquidacaoService)
 	{
 		InitializeComponent();
-        _viewModel = new LancamentoVM(connection);
+        _viewModel = new LancamentoVM(connection, liquidacaoService);
         BindingContext = _viewModel;
     }
 
@@ -25,8 +26,5 @@ public partial class LancamentoPage : ContentPage
         await _viewModel.InitializeVMAsync();
 
     }
-
-
-
 
 }

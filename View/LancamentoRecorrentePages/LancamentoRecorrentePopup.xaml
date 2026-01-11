@@ -1,0 +1,117 @@
+<mopups:PopupPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+    xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+    xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
+    xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
+    x:Class="PeachWallet.View.LancamentoRecorrentePopup"
+    BackgroundColor="#80000000">
+
+    <!-- GRID CENTRALIZADOR -->
+    <Grid
+        HorizontalOptions="Center"
+        VerticalOptions="Center">
+
+        <Border
+            BackgroundColor="{StaticResource Gray600}"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 12" MinimumWidthRequest="1000" Margin="30, 0">
+
+            <Grid RowDefinitions="Auto,*, Auto" RowSpacing="0">
+
+                <!-- HEADER -->
+                <Grid Grid.Row="0" 
+                      ColumnDefinitions="*,Auto"
+                      HorizontalOptions="Center"
+                      Margin="0">
+
+                    <Label x:Name="TitleLabel"
+                           Text="Novo Lançamento Mensal"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           Padding="20,10"
+                           VerticalOptions="Center" />
+                </Grid>
+
+                <BoxView StyleClass="Divider" Grid.Row="1" Margin="0"  Color="{StaticResource Gray300}" />
+                <!-- FORM -->
+                <input:FormView Grid.Row="2" 
+                                x:Name="inputForm"
+                                Spacing="0">
+
+                    <Grid RowDefinitions="Auto,Auto,Auto"
+                          RowSpacing="0">
+
+                        <VerticalStackLayout Grid.Row="0"  Padding="20,10"
+                                             Spacing="10">
+
+                            <material:TextField Title="Descrição"
+                                                 x:Name="txtDescricao">
+                                <validation:RequiredValidation
+                                    Message="Digite uma descrição!" />
+                            </material:TextField>
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <material:TextField Title="Valor" x:Name="txtValor" Keyboard="Numeric" Grid.Column="0">
+                                    <validation:RequiredValidation Message="Digite um valor!" />
+                                </material:TextField>
+                                <material:DatePickerField 
+                                    Title="Data" 
+                                    x:Name="pkDataLancamento" 
+                                    Grid.Column="1" 
+                                    Format="dd/MM/yy" 
+                                    Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.Calendar}}"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                                <material:DropdownField Grid.Column="0" Grid.ColumnSpan="2" SelectedItemChanged="dpdTipoLanc_SelectedItemChanged"
+                                        x:Name="dpdTipoLancamento"
+                                        Title="Tipo"
+                                        Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.AngleDown}}">
+
+                                    <material:DropdownField.Validations>
+                                        <validation:RequiredValidation
+                                            Message="Selecione um Tipo" />
+                                    </material:DropdownField.Validations>
+                                </material:DropdownField>
+
+                                <Grid ColumnDefinitions="*, auto" Grid.Column="1" x:Name="swContainer" IsVisible="False">
+                                    <Label Text="Compra no Crédito" FontSize="16" TextColor="{StaticResource Gray200}" VerticalOptions="Center" Grid.Column="0" Grid.Row="0" />
+                                    <Switch x:Name="swtCred"  Grid.Column="1" Grid.Row="0"/>
+                                </Grid>
+
+                            </Grid>
+                            
+                            <material:TextField Title="Quantidade de Meses" x:Name="txtQtdMeses" Keyboard="Numeric"/>
+
+                        </VerticalStackLayout>
+
+                        <BoxView Grid.Row="1" HeightRequest="1" Margin="0,5,0,0" Color="{StaticResource Gray300}"/>
+
+
+                        <Grid Grid.Row="2" Padding="20,10" 
+                              ColumnDefinitions="*,*"
+                              ColumnSpacing="10">
+
+                            <Button
+                                Text="Cancelar"
+                                Clicked="OnCancelClicked"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                BorderColor="{StaticResource Primary}" />
+
+                            <Button
+                                x:Name="btnSubmit"
+                                Grid.Column="1"
+                                Text="Criar"
+                                input:FormView.IsSubmitButton="True"
+                                BackgroundColor="{StaticResource Primary}" />
+                        </Grid>
+
+                    </Grid>
+                </input:FormView>
+
+            </Grid>
+        </Border>
+    </Grid>
+
+</mopups:PopupPage>

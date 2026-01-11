@@ -1,26 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="PeachWallet.View.LancamentoPage"
+             x:Class="PeachWallet.View.LancamentoRecorrentePage"
              xmlns:models="clr-namespace:PeachWallet.Models"
              xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
              xmlns:components="clr-namespace:PeachWallet.View.Components"
              xmlns:vm="clr-namespace:PeachWallet.ViewModel"
-             Title="Lançamentos"
+             Title="Lançamentos Mensais"
              x:Name="Root"
-             x:DataType="vm:LancamentoVM">
-    
+             x:DataType="vm:LancamentoRecorrenteVM">
+
     <Grid RowDefinitions="*, 60">
 
         <VerticalStackLayout Padding="20" Spacing="20" Grid.Row="0">
-            <components:MonthPickerField
-                WidthRequest="190"
-                DisplayMember="Display"
-                DisplayText="Display"
-                ItemsSource="{Binding MesesDisponiveis}"
-                SelectedItem="{Binding MesSelecionado}"
-                SelectionChangedCommand="{Binding MesSelecionadoCommand}" />
-
             <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
                 <Border Grid.Row="0" Grid.Column="0" HeightRequest="75"
                         BackgroundColor="{StaticResource NegativeDark}"
@@ -83,8 +75,7 @@
                         </Image>
                         <Label Text="Disponivel" Grid.Row="0" Grid.Column="1" FontSize="16" FontAttributes="Bold" Margin="10,0" />
                         <VerticalStackLayout Grid.Row="1" Grid.ColumnSpan="2">
-                            <Label Text="{Binding DisponivelPeriodo, StringFormat='{0:C}'}"  FontSize="16" FontAttributes="Bold" Margin="10,0" FontAutoScalingEnabled="True"  LineBreakMode="NoWrap"/>
-                            <Label Text="{Binding SobrasPeriodo, StringFormat='Esse Mês: {0:C}'}"  FontSize="12" FontAttributes="Bold" Margin="10,0" FontAutoScalingEnabled="True"  LineBreakMode="NoWrap"/>
+                            <Label Text="{Binding DisponivelPeriodo, StringFormat='{0:C}'}"  FontSize="18" FontAttributes="Bold" Margin="10,0" FontAutoScalingEnabled="True"  LineBreakMode="NoWrap"/>
                         </VerticalStackLayout>
                     </Grid>
                 </Border>
@@ -103,7 +94,7 @@
                         Padding="10"
                         Grid.Column="1"
                         VerticalOptions="Center"
-                        Command="{Binding CriarLancamentoCommand}">
+                        Command="{Binding CriarLancamentoRecorrenteCommand}">
                         <ImageButton.Source>
                             <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Plus}" Color="{StaticResource Primary}" />
                         </ImageButton.Source>
@@ -118,14 +109,8 @@
                       RemainingItemsThreshold="20"
                       SelectionMode="None">
                         <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:LancamentoDTO">
+                            <DataTemplate x:DataType="models:LancamentoRecorrenteDTO">
                                 <Grid ColumnDefinitions="Auto,*,Auto, Auto" Padding="0,5" ColumnSpacing="10">
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer
-                                             Command="{Binding BindingContext.RemoverLancamentoCommand, Source={x:Reference Root}}"
-                                            CommandParameter="{Binding .}" />
-                                    </Grid.GestureRecognizers>
-
                                     <Border WidthRequest="45"
                                             HeightRequest="45"
                                             BackgroundColor="{Binding CorTexto}"
@@ -139,37 +124,51 @@
                                         </Image>
                                     </Border>
 
-                                    <Grid Grid.Column="1" ColumnSpacing="2" VerticalOptions="Center" RowDefinitions="*,*">
+                                    <Grid Grid.Column="1" RowSpacing="2" VerticalOptions="Center" RowDefinitions="*,*">
                                         <Label Text="{Binding Descricao}"
                                                FontSize="16"
                                                FontAttributes="Bold" 
                                                TextColor="{StaticResource White}" Grid.Row="0" />
                                         <Label Text="{Binding DtLancamento, StringFormat='{0:dd/MM/yyyy HH:mm}'}" FontSize="14" Grid.Row="1" />
                                     </Grid>
-                                    
-                                    <Grid Grid.Column="2" VerticalOptions="Center" IsVisible="{Binding FlLiquidado}">
-                                        <Image WidthRequest="20" HeightRequest="20">
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.CalendarCheck}" Color="{StaticResource White}" />
-                                            </Image.Source>
-                                        </Image>
-                                    </Grid>
-                                    
-                                    <Grid RowDefinitions="*,*" Grid.Column="3">
-                                        <Label
+
+                                    <Grid RowDefinitions="*,*" Grid.Column="2">
+                                        <Label Grid.Row="0"
                                                Text="{Binding ValorFormatado, StringFormat='{0:C}'}"
                                                FontSize="14"
                                                FontAttributes="Bold" 
                                                TextColor="{Binding CorTexto}"
-                                               VerticalOptions="Center" Grid.Row="0" />
-                                        <Label
+                                               VerticalOptions="Center"/>
+                                        <Label Grid.Row="1"
                                             Text="{Binding CreditoDebito}"
                                             TextColor="{StaticResource Gray100}" 
                                             FontSize="12" 
-                                            HorizontalOptions="End" Grid.Row="1" />
+                                            HorizontalOptions="End"/>
                                     </Grid>
 
-
+                                    <Grid Grid.Column="3"
+                                          VerticalOptions="Center"
+                                          HorizontalOptions="Center"
+                                          HeightRequest="25"
+                                          WidthRequest="70"
+                                          ColumnDefinitions="*, *"
+                                          ColumnSpacing="0">
+                                        <ImageButton Grid.Column="0" Margin="0"
+                                            BackgroundColor="Transparent"
+                                            Command="{Binding BindingContext.AtualizarLancamentoRecorrenteCommand, Source={x:Reference Root}}"
+                                            CommandParameter="{Binding .}">
+                                            <ImageButton.Source>
+                                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Pen}" Color="{StaticResource White}" />
+                                            </ImageButton.Source>
+                                        </ImageButton>
+                                        <ImageButton Grid.Column="1"
+                                            Command="{Binding BindingContext.RemoverLancamentoRecorrenteCommand, Source={x:Reference Root}}"
+                                            CommandParameter="{Binding .}">
+                                            <ImageButton.Source>
+                                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.TrashCan}" Color="{StaticResource White}" />
+                                            </ImageButton.Source>
+                                        </ImageButton>
+                                    </Grid>
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>

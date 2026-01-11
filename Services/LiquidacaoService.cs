@@ -5,6 +5,7 @@ using PeachWallet.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,12 +26,28 @@ namespace PeachWallet.Services
             ContaBancaria contaMov = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaMovimentacao);
             ContaBancaria contaInvest = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaInvestimento);
 
-            var lstLancamentos = await _connection.SelectAsync<Lancamento>(x=> !x.FlLiquidado && x.DtLancamento < data);
 
-            foreach(var lancamento in lstLancamentos)
+            DateTime dataFinalFatura = new DateTime(data.Year, data.Month, configs.NrDiaFechamentoFatura ?? 1);
+            DateTime dataInicialFatura = dataFinalFatura.AddMonths(-1);
+
+            Expression<Func<Lancamento, bool>> predicate = x =>
+                (!x.FlLiquidado && !x.FlCredito && x.DtLancamento < data) ||
+                (x.DtLancamento >= dataInicialFatura &&
+                x.DtLancamento < dataFinalFatura && x.FlCredito && !x.FlLiquidado);
+
+            var lstLancamentos = await _connection.SelectAsync<Lancamento>(predicate);
+
+            foreach (var lancamento in lstLancamentos)
             {
                 lancamento.FlLiquidado = await AtualizarSaldoConta(lancamento, contaMov, contaInvest, configs, data);   
                 await _connection.UpdateAsync<Lancamento>(lancamento);
+
+                if(lancamento.FlLiquidado && lancamento.IdLancamentoRecorrente != null && lancamento.IdLancamentoRecorrente != 0)
+                {
+                    LancamentoRecorrente lancamentoRecorrente = await _connection.GetAsync<LancamentoRecorrente>(x=> x.Id == lancamento.IdLancamentoRecorrente);
+                    lancamentoRecorrente.NrMeses = lancamentoRecorrente.NrMeses != null ? lancamentoRecorrente.NrMeses - 1 : null;
+                    await _connection.UpdateAsync<LancamentoRecorrente>(lancamentoRecorrente);
+                }
             }
         }
         public async Task<bool> AtualizarSaldoConta(Lancamento lancamento, ContaBancaria contaMov, ContaBancaria contaInvest, Configs configs, DateTime data)
@@ -67,6 +84,35 @@ namespace PeachWallet.Services
             }
             return atualizado;
         }
+
+        public async Task CriarLancamentoRecorrenteProxMes()
+        {
+            var lstLancamentoRecorrente = await _connection.SelectAsync<LancamentoRecorrente>(x => x.NrMeses == null);
+
+            DateTime database = DateTime.Now.AddMonths(1);
+
+            DateTime primeiroDiaMes = new DateTime(database.Year, database.Month, 1);
+            DateTime primeiroDiaProxMes = primeiroDiaMes.AddMonths(1);
+            foreach (var lancamentoRecorrente in lstLancamentoRecorrente)
+            {
+                var existeLanc = await _connection.GetAsync<Lancamento>(x => x.IdLancamentoRecorrente == lancamentoRecorrente.Id && x.DtLancamento >= primeiroDiaMes && x.DtLancamento < primeiroDiaProxMes);
+                if(existeLanc == null)
+                {
+                    var lancamentoDB = new Lancamento
+                    {
+                        Descricao = lancamentoRecorrente.Descricao,
+                        DtLancamento = database.Date,
+                        TipoLancamento = (int)lancamentoRecorrente.TipoLancamento,
+                        Valor = lancamentoRecorrente.Valor,
+                        IdLancamentoRecorrente = lancamentoRecorrente.Id,
+                        FlCredito = lancamentoRecorrente.FlCredito,
+                    };
+                }
+            }
+
+
+        }
+
     }
 
 }

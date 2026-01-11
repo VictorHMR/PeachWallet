@@ -24,6 +24,9 @@
     <Tab Title="Lançamentos" Style="{StaticResource TabStyle}" Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.MoneyBill}}">
         <ShellContent ContentTemplate="{DataTemplate views:LancamentoPage}" />
     </Tab>
+    <Tab Title="Mensais" Style="{StaticResource TabStyle}" Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.CalendarWeek}}">
+        <ShellContent ContentTemplate="{DataTemplate views:LancamentoRecorrentePage}" />
+    </Tab>
     <Tab Title="Saldo" Style="{StaticResource TabStyle}" Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.Coins}}">
         <ShellContent ContentTemplate="{DataTemplate views:SaldoPage}" />
     </Tab>

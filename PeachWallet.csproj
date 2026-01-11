@@ -135,6 +135,12 @@
 	  <MauiXaml Update="View\LancamentoPages\LancamentoPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="View\LancamentoRecorrentePages\LancamentoRecorrentePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="View\LancamentoRecorrentePages\LancamentoRecorrentePopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="View\SaldoPages\ContaBancariaPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

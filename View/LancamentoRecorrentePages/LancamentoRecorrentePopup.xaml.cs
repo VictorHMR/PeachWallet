@@ -7,12 +7,13 @@ using UraniumUI.Material.Controls;
 
 namespace PeachWallet.View;
 
-public partial class LancamentoPopup
+public partial class LancamentoRecorrentePopup
 {
-    private readonly Action<LancamentoDTO?, PopupMode> _onSubmit;
+    private readonly Action<LancamentoRecorrenteDTO?, PopupMode> _onSubmit;
     private readonly PopupMode _mode;
-    private readonly LancamentoDTO? _lancamento;
-    public LancamentoPopup(PopupMode mode, Action<LancamentoDTO?, PopupMode> onSubmit, LancamentoDTO? lancamento = null)
+    private readonly LancamentoRecorrenteDTO? _lancamento;
+
+    public LancamentoRecorrentePopup(PopupMode mode, Action<LancamentoRecorrenteDTO?, PopupMode> onSubmit, LancamentoRecorrenteDTO? lancamento = null)
     {
         InitializeComponent();
         _mode = mode;
@@ -31,19 +32,22 @@ public partial class LancamentoPopup
 
         if (_lancamento != null)
         {
+            TitleLabel.Text = "Editar Lançamento Mensal";
+            btnSubmit.Text = "Salvar";
             txtDescricao.Text = _lancamento.Descricao;
             txtValor.Text = _lancamento.Valor.ToString("N2");
             dpdTipoLancamento.SelectedItem = ((List<TipoLancamentoPickerItem>)dpdTipoLancamento.ItemsSource)
                 .FirstOrDefault(c => c.Id == _lancamento.TipoLancamento);
             pkDataLancamento.Date = _lancamento.DtLancamento;
             swtCred.IsToggled = _lancamento.FlCredito;
+            txtQtdMeses.Text = _lancamento.NrMeses?.ToString();
         }
     }
 
 
     public void OnCancelClicked(object sender, EventArgs e)
     {
-        LancamentoDTO dto = _lancamento ?? new LancamentoDTO();
+        LancamentoRecorrenteDTO dto = _lancamento ?? new LancamentoRecorrenteDTO();
 
         _onSubmit?.Invoke(dto, PopupMode.Cancel);
         MopupService.Instance.PopAsync();
@@ -56,7 +60,7 @@ public partial class LancamentoPopup
             DisplayAlert("Atenção", "Escolha uma categoria.", "OK");
             return;
         }
-        LancamentoDTO dto = _lancamento ?? new LancamentoDTO();
+        LancamentoRecorrenteDTO dto = _lancamento ?? new LancamentoRecorrenteDTO();
 
         if (dpdTipoLancamento.SelectedItem is TipoLancamentoPickerItem selected)
         {
@@ -65,6 +69,7 @@ public partial class LancamentoPopup
             dto.Valor = double.TryParse(txtValor.Text, out double value) ? value : 0;
             dto.DtLancamento = pkDataLancamento.Date ?? DateTime.Now;
             dto.FlCredito = swtCred.IsToggled;
+            dto.NrMeses = int.TryParse(txtQtdMeses.Text, out int meses) ? meses : null;
         }
 
         _onSubmit?.Invoke(dto, _mode);
@@ -75,7 +80,7 @@ public partial class LancamentoPopup
     {
         if (dpdTipoLancamento.SelectedItem is not TipoLancamentoPickerItem selected)
             return;
-    
+
         switch (selected.Id)
         {
             case TiposLancamento.Saida:
