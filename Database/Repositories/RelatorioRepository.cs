@@ -43,5 +43,18 @@ namespace PeachWallet.Database.Repositories
             return dto;
         }
 
+        public async Task<List<MesLancamentoDTO>> GetMesesComLancamentos()
+        {
+            return await _conn.QueryAsync<MesLancamentoDTO>(@"
+            SELECT 
+                CAST(strftime('%Y', (DtLancamento / 10000000) - 62135596800, 'unixepoch') AS INTEGER) AS Ano,
+                CAST(strftime('%m', (DtLancamento / 10000000) - 62135596800, 'unixepoch') AS INTEGER) AS Mes
+            FROM Lancamento
+            GROUP BY 
+                strftime('%Y', (DtLancamento / 10000000) - 62135596800, 'unixepoch'),
+                strftime('%m', (DtLancamento / 10000000) - 62135596800, 'unixepoch')
+            ORDER BY Ano, Mes");
+        }
+
     }
 }

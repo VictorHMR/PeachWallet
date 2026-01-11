@@ -227,22 +227,15 @@ namespace PeachWallet.ViewModel
         #endregion
 
         #region HELPERS
-
+        class Temporario
+        {
+            public int Ano { get; set; }
+        }
         public async Task LoadMesesAsync()
         {
-            var lancamentos = await _connection.SelectAsync<Lancamento>(); //Preciso mudar isso futuramente, como está sendo feito agora não é otimizado
             var today = DateTime.Now;
 
-            var meses = lancamentos
-                .Select(x => new { x.DtLancamento.Year, x.DtLancamento.Month })
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month)
-                .Select(x => new MesLancamentoDTO
-                {
-                    Ano = x.Year,
-                    Mes = x.Month
-                }).ToList();
+            var meses = await _relatorioRepository.GetMesesComLancamentos();
 
             if (meses.Count() < 1 || !meses.Any(x=> x.Ano == today.Year && x.Mes == today.Month))
                 meses.Insert(0, new MesLancamentoDTO { Mes = today.Month, Ano = today.Year });
