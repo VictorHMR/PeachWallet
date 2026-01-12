@@ -169,6 +169,16 @@ namespace PeachWallet.ViewModel
         [RelayCommand]
         public async Task RemoverLancamentoAsync(LancamentoDTO lancamento)
         {
+            if(lancamento.IdLancamentoRecorrente != null || lancamento.IdLancamentoRecorrente > 0)
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "Atenção",
+                    "Lançamentos recorrentes não podem ser excluídos individualmente. Por favor, edite ou exclua a série de lançamentos recorrentes.",
+                    "OK"
+                );
+                return;
+            }
+
             bool confirmar = await Application.Current.MainPage.DisplayAlert(
                 "Excluir lançamento",
                 "Tem certeza que deseja excluir este lançamento?",
