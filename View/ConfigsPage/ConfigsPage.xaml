@@ -8,17 +8,38 @@
              Title="Configurações">
 
     <ScrollView VerticalOptions="Start" Padding="15, 0" >
-        <VerticalStackLayout Spacing="5">
-            <Label Text="Lançamentos" FontSize="22" Margin="0,10,0,5"  TextColor="{StaticResource Gray100}"/>
-            <material:PickerField 
-                Title="Data do fechamento da fatura"
-                FontSize="16"
-                TitleFontSize="16"
-                ItemsSource="{Binding DiasFechamento}"
-                SelectedItem="{Binding DiaFechamentoFatura, Mode=TwoWay}"
-                Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.AngleDown}}" 
-                AllowClear="False"/>
-        </VerticalStackLayout>
+        <Grid RowSpacing="5" RowDefinitions="Auto, Auto">
+            <VerticalStackLayout Grid.Row="0">
+                <Label Text="Lançamentos" FontSize="22" Margin="0,10,0,5"  TextColor="{StaticResource Gray100}"/>
+                <material:PickerField 
+                    Title="Data do fechamento da fatura"
+                    FontSize="16"
+                    TitleFontSize="16"
+                    ItemsSource="{Binding DiasFechamento}"
+                    SelectedItem="{Binding DiaFechamentoFatura, Mode=TwoWay}"
+                    Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.AngleDown}}" 
+                    AllowClear="False"/>
+            </VerticalStackLayout>
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*" ColumnSpacing="10" RowSpacing="10" Grid.Row="1" Margin="0,20">
+                <Label Grid.Row="0" Text="Banco de Dados" FontSize="22" TextColor="{StaticResource Gray100}"/>
+                <Button 
+                    Text="Exportar" 
+                    FontSize="18" 
+                    BackgroundColor="{StaticResource AvaliableDark}"
+                    TextColor="{StaticResource AvaliableLight}"
+                    Grid.Column="0"
+                    Grid.Row="1"
+                    Command="{Binding ExportarDadosCommand}"/>
+                <Button 
+                    Text="Importar" 
+                    FontSize="18" 
+                    BackgroundColor="{StaticResource PositiveDark}"
+                    TextColor="{StaticResource Positive}"
+                    Grid.Column="1"
+                    Grid.Row="1"
+                    Command="{Binding ImportarDadosCommand}"/>
+            </Grid>
+        </Grid>
 
     </ScrollView>
 </ContentPage>

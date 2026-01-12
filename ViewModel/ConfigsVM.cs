@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PeachWallet.Database;
 using PeachWallet.Database.Models;
 using System.Collections.ObjectModel;
@@ -19,6 +20,25 @@ namespace PeachWallet.ViewModel
         public ConfigsVM(LocalDbService connection)
         {
             _connection = connection;
+        }
+
+        [RelayCommand]
+        public async Task ImportarDadosAsync()
+        {
+            bool confirmar = await Application.Current.MainPage.DisplayAlert(
+                "Importar Dados",
+                "Tem certeza que deseja prosseguir com a importação ? Essa ação irá sobrescrever os dados existentes",
+                "Importar",
+                "Cancelar"
+            );
+            if (!confirmar)
+                return;
+            await _connection.ImportDatabaseAsync();
+        }
+        [RelayCommand]
+        public async Task ExportarDadosAsync()
+        {
+            await _connection.ExportDatabaseAsync();
         }
 
         public async Task LoadAsync()

@@ -261,6 +261,8 @@ namespace PeachWallet.ViewModel
 
         public async Task LoadRelatorio()
         {
+            if (contaMov == null || contaInvest == null)
+                return;
             bool PeriodoAtual = MesSelecionado.Ano == DateTime.Now.Year && MesSelecionado.Mes == DateTime.Now.Month;
 
             ResumoMensalDTO resumo = await _relatorioRepository.GetResumoMes(MesSelecionado.Ano, MesSelecionado.Mes);

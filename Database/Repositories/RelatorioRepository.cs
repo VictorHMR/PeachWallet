@@ -17,6 +17,9 @@ namespace PeachWallet.Database.Repositories
             Configs config = await _conn.GetAsync<Configs>();
             ContaBancaria contaMov = await _conn.GetAsync<ContaBancaria>(x => x.Id == config.IdContaMovimentacao);
 
+            if (contaMov is null)
+                return new List<ResumoMensalDTO>();
+
             List<ResumoMensalDTO> resumoAno = new List<ResumoMensalDTO>();
             double ValorDispMesPassado = 0;
             for (int mes = 1; mes <= 12; mes++)

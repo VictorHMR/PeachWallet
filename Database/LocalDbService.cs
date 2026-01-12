@@ -1,4 +1,6 @@
-﻿using PeachWallet.Database.Models;
+﻿using CommunityToolkit.Maui.Storage;
+using Microsoft.Maui.Storage;
+using PeachWallet.Database.Models;
 using PeachWallet.Utils;
 using SQLite;
 using System;
@@ -72,10 +74,15 @@ namespace PeachWallet.Database
             await CreateSchema();
         }
 
+        public async Task CloseAsync()
+        {
+            if (_connection != null)
+                await _connection.CloseAsync();
+        }
+
         private async Task MigrateDatabase(int oldVersion)
         {
         }
-
 
         private async Task CreateSchema()
         {
@@ -84,7 +91,6 @@ namespace PeachWallet.Database
             await _connection.CreateTableAsync<Projecao>();
             await _connection.CreateTableAsync<LancamentoRecorrente>();
         }
-
 
         public async Task<T> GetAsync<T>(Expression<Func<T, bool>> predicate = null) where T : new()
         {
@@ -199,6 +205,69 @@ namespace PeachWallet.Database
 
         }
 
+
+        public async Task<bool> ImportDatabaseAsync()
+        {
+            try
+            {
+                var file = await FilePicker.PickAsync(new PickOptions
+                {
+                    PickerTitle = "Selecione o banco de dados",
+                });
+
+                if (file == null)
+                    return false;
+
+                await CloseAsync();
+
+                using var sourceStream = await file.OpenReadAsync();
+                using var destStream = File.Create(Configuration.DATABASE_PATH);
+
+                await sourceStream.CopyToAsync(destStream);
+
+                _initialized = false;
+                await EnsureInitializedAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+                return false;
+            }
+        }
+
+        public async Task<bool> ExportDatabaseAsync()
+        {
+            try
+            {
+                await CloseAsync();
+
+                var fileName = $"peachwallet_backup_{DateTime.Now:yyyyMMdd_HHmm}.db";
+
+                using var fileStream = File.OpenRead(Configuration.DATABASE_PATH);
+
+                var memoryStream = new MemoryStream();
+                await fileStream.CopyToAsync(memoryStream);
+
+                memoryStream.Position = 0; 
+
+                var result = await FileSaver.SaveAsync(
+                    fileName,
+                    memoryStream,
+                    CancellationToken.None);
+
+                _initialized = false;
+                await EnsureInitializedAsync();
+
+                return result.IsSuccessful;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+                return false;
+            }
+        }
     }
 
 }
