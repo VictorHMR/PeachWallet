@@ -26,20 +26,18 @@ namespace PeachWallet.Services
             ContaBancaria contaMov = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaMovimentacao);
             ContaBancaria contaInvest = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaInvestimento);
 
-
-            DateTime dataFinalFatura = new DateTime(data.Year, data.Month, configs.NrDiaFechamentoFatura ?? 1);
-            DateTime dataInicialFatura = dataFinalFatura.AddMonths(-1);
+            DateTime dataFinalFatura = new DateTime(data.Year, data.Month, configs.NrDiaFechamentoFatura ?? 1); 
+            DateTime dataInicialFatura = dataFinalFatura.AddMonths(dataFinalFatura > data  ? - 1 : 0); 
 
             Expression<Func<Lancamento, bool>> predicate = x =>
                 (!x.FlLiquidado && !x.FlCredito && x.DtLancamento < data) ||
-                (x.DtLancamento >= dataInicialFatura &&
-                x.DtLancamento < dataFinalFatura && x.FlCredito && !x.FlLiquidado);
+                (x.DtLancamento <= dataInicialFatura && x.FlCredito && !x.FlLiquidado);
 
             var lstLancamentos = await _connection.SelectAsync<Lancamento>(predicate);
 
             foreach (var lancamento in lstLancamentos)
             {
-                lancamento.FlLiquidado = await AtualizarSaldoConta(lancamento, contaMov, contaInvest, configs, data);   
+                lancamento.FlLiquidado = await AtualizarSaldoConta(lancamento, contaMov, contaInvest, configs, data, true);   
                 await _connection.UpdateAsync<Lancamento>(lancamento);
 
                 if(lancamento.FlLiquidado && lancamento.IdLancamentoRecorrente != null && lancamento.IdLancamentoRecorrente != 0)
@@ -50,7 +48,8 @@ namespace PeachWallet.Services
                 }
             }
         }
-        public async Task<bool> AtualizarSaldoConta(Lancamento lancamento, ContaBancaria contaMov, ContaBancaria contaInvest, Configs configs, DateTime data)
+
+        public async Task<bool> AtualizarSaldoConta(Lancamento lancamento, ContaBancaria contaMov, ContaBancaria contaInvest, Configs configs, DateTime data, bool FaturaFechou = false)
         {
             bool atualizado = false;
             bool execute = false;
@@ -60,7 +59,7 @@ namespace PeachWallet.Services
             if (configs.IdContaInvestimento is null)
                 return atualizado;
 
-            if (lancamento.FlCredito && lancamento.DtLancamento.Date < data.Date)
+            if(FaturaFechou && lancamento.FlCredito)
                 execute = true;
             if (!lancamento.FlCredito && !lancamento.FlLiquidado && lancamento.DtLancamento.Date <= data.Date)
                 execute = true;
