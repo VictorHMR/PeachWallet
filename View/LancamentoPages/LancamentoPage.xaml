@@ -122,7 +122,7 @@
                                 <Grid ColumnDefinitions="Auto,*,Auto, Auto" Padding="0,5" ColumnSpacing="10">
                                     <Grid.GestureRecognizers>
                                         <TapGestureRecognizer
-                                             Command="{Binding BindingContext.RemoverLancamentoCommand, Source={x:Reference Root}}"
+                                             Command="{Binding BindingContext.EditarLancamentoCommand, Source={x:Reference Root}}"
                                             CommandParameter="{Binding .}" />
                                     </Grid.GestureRecognizers>
 

@@ -26,12 +26,17 @@ namespace PeachWallet.Services
             ContaBancaria contaMov = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaMovimentacao);
             ContaBancaria contaInvest = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaInvestimento);
 
-            DateTime dataFinalFatura = new DateTime(data.Year, data.Month, configs.NrDiaFechamentoFatura ?? 1); 
-            DateTime dataInicialFatura = dataFinalFatura.AddMonths(dataFinalFatura > data  ? - 1 : 0); 
+            DateTime dataFechamentoAtual =
+                new DateTime(data.Year, data.Month, configs.NrDiaFechamentoFatura ?? 1);
+
+            DateTime dataLimiteCredito =
+                data < dataFechamentoAtual
+                    ? dataFechamentoAtual.AddMonths(-1)
+                    : dataFechamentoAtual;
 
             Expression<Func<Lancamento, bool>> predicate = x =>
                 (!x.FlLiquidado && !x.FlCredito && x.DtLancamento < data) ||
-                (x.DtLancamento <= dataInicialFatura && x.FlCredito && !x.FlLiquidado);
+                (x.DtLancamento <= dataLimiteCredito && x.FlCredito && !x.FlLiquidado);
 
             var lstLancamentos = await _connection.SelectAsync<Lancamento>(predicate);
 
@@ -82,6 +87,26 @@ namespace PeachWallet.Services
                 atualizado = true;
             }
             return atualizado;
+        }
+
+        public async Task ReembolsarSaldoConta(LancamentoDTO lancamento, ContaBancaria contaMov, ContaBancaria contaInvest, Configs configs)
+        {
+            if (configs.IdContaMovimentacao is not null)
+            {
+                if (lancamento.TipoLancamento == TiposLancamento.Saida)
+                    contaMov.Saldo += lancamento.Valor;
+                else if (lancamento.TipoLancamento == TiposLancamento.Entrada)
+                    contaMov.Saldo -= lancamento.Valor;
+                else if (lancamento.TipoLancamento == TiposLancamento.Investimento && configs.IdContaInvestimento is not null)
+                {
+                    contaMov.Saldo += lancamento.Valor;
+                    contaInvest.Saldo -= lancamento.Valor;
+                    await _connection.UpdateAsync(contaInvest);
+                }
+
+                await _connection.UpdateAsync(contaMov);
+
+            }
         }
 
         public async Task CriarLancamentoRecorrenteProxMes()

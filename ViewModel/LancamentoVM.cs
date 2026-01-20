@@ -167,53 +167,114 @@ namespace PeachWallet.ViewModel
         }
 
         [RelayCommand]
+        public async Task EditarLancamentoAsync(LancamentoDTO lancamento)
+        {
+            LancamentoDTO lancamentoAntigo = new LancamentoDTO
+            {
+                IdLancamento = lancamento.IdLancamento,
+                IdLancamentoRecorrente = lancamento.IdLancamentoRecorrente,
+                DtLancamento = lancamento.DtLancamento,
+                TipoLancamento = lancamento.TipoLancamento,
+                Valor = lancamento.Valor,
+                Descricao = lancamento.Descricao,
+                FlCredito = lancamento.FlCredito,
+                FlLiquidado = lancamento.FlLiquidado,
+                CorTexto = lancamento.CorTexto
+            };
+
+            await MopupService.Instance.PushAsync(
+                    new LancamentoPopup(PopupMode.Update, async (lancamento, mode) =>
+                    {
+                        if (mode == PopupMode.Update && lancamento != null)
+                        {
+                            var lancamentoDB = await _connection.GetAsync<Lancamento>(x => x.Id == lancamento.IdLancamento);
+
+                            if (lancamentoAntigo.FlLiquidado)
+                            {
+                                await _liquidacaoService.ReembolsarSaldoConta(lancamentoAntigo, contaMov, contaInvest, configs);
+                                lancamentoDB.FlLiquidado = false;
+                            }
+
+                            lancamentoDB.DtLancamento = lancamento.DtLancamento;
+                            lancamentoDB.TipoLancamento = (int)lancamento.TipoLancamento;
+                            lancamentoDB.Valor = lancamento.Valor;
+                            lancamentoDB.Descricao = lancamento.Descricao;
+                            lancamentoDB.FlCredito = lancamento.FlCredito;
+                            lancamentoDB.FlLiquidado = await _liquidacaoService.AtualizarSaldoConta(lancamentoDB, contaMov, contaInvest, configs, DateTime.Now);
+                            await _connection.UpdateAsync(lancamentoDB);
+
+                            lancamento.FlLiquidado = lancamentoDB.FlLiquidado;
+                            lancamento.CorTexto = LancamentoUtils.ObterCorTexto(lancamento.TipoLancamento);
+
+                            if (PertenceAoPeriodoSelecionado(lancamento))
+                            {
+                                var item = Lancamentos.FirstOrDefault(x => x.IdLancamento == lancamento.IdLancamento);
+                                if (item != null)
+                                    Lancamentos.Remove(item);
+
+                                var index = Lancamentos
+                                    .TakeWhile(x => x.DtLancamento > lancamento.DtLancamento)
+                                    .Count();
+
+                                Lancamentos.Insert(index, lancamento);
+                                await LoadRelatorio();
+                            }
+
+                            await LoadMesesAsync();
+                        }
+
+                    }, lancamento, new DateTime(lancamento.DtLancamento.Year, lancamento.DtLancamento.Month, lancamento.DtLancamento.Day), async dto => await RemoverLancamentoAsync(dto), async dto => await ForcarLiquidacaoLancamentoAsync(dto))
+            );
+
+        }
+
+        [RelayCommand]
         public async Task RemoverLancamentoAsync(LancamentoDTO lancamento)
         {
-            if(lancamento.IdLancamentoRecorrente != null || lancamento.IdLancamentoRecorrente > 0)
+            if (lancamento != null)
             {
-                await Application.Current.MainPage.DisplayAlert(
-                    "Atenção",
-                    "Lançamentos recorrentes não podem ser excluídos individualmente. Por favor, edite ou exclua a série de lançamentos recorrentes.",
-                    "OK"
-                );
-                return;
-            }
-
-            bool confirmar = await Application.Current.MainPage.DisplayAlert(
-                "Excluir lançamento",
-                "Tem certeza que deseja excluir este lançamento?",
-                "Excluir",
-                "Cancelar"
-            );
-            if (!confirmar)
-                return;
-            if (lancamento.FlLiquidado)
-            {
-                if (configs.IdContaMovimentacao is not null)
+                if (lancamento.FlLiquidado)
                 {
-                    if (lancamento.TipoLancamento == TiposLancamento.Saida)
-                        contaMov.Saldo += lancamento.Valor;
-                    else if (lancamento.TipoLancamento == TiposLancamento.Entrada)
-                        contaMov.Saldo -= lancamento.Valor;
-                    else if (lancamento.TipoLancamento == TiposLancamento.Investimento && configs.IdContaInvestimento is not null)
-                    {
-                        contaMov.Saldo += lancamento.Valor;
-                        contaInvest.Saldo -= lancamento.Valor;
-                        await _connection.UpdateAsync(contaInvest);
-                    }
-
-                    await _connection.UpdateAsync(contaMov);
-
+                    await _liquidacaoService.ReembolsarSaldoConta(lancamento, contaMov, contaInvest, configs);
                 }
+
+                await _connection.DeleteAsync<Lancamento>(lancamento.IdLancamento);
+
+                var item = Lancamentos.FirstOrDefault(x => x.IdLancamento == lancamento.IdLancamento);
+                if (item != null)
+                    Lancamentos.Remove(item);
+                if (lancamento.DtLancamento.Year == MesSelecionado.Ano && lancamento.DtLancamento.Month == MesSelecionado.Mes)
+                    await LoadRelatorio();
             }
 
-            await _connection.DeleteAsync<Lancamento>(lancamento.IdLancamento);
+        }
 
-            var item = Lancamentos.FirstOrDefault(x => x.IdLancamento == lancamento.IdLancamento);
-            if (item != null)
-                Lancamentos.Remove(item);
-            if (lancamento.DtLancamento.Year == MesSelecionado.Ano && lancamento.DtLancamento.Month == MesSelecionado.Mes)
-                await LoadRelatorio();
+        [RelayCommand]
+        public async Task ForcarLiquidacaoLancamentoAsync(LancamentoDTO lancamento)
+        {
+            if (lancamento != null)
+            {
+                var lancamentoDB = await _connection.GetAsync<Lancamento>(x => x.Id == lancamento.IdLancamento);
+                lancamentoDB.FlLiquidado = await _liquidacaoService.AtualizarSaldoConta(lancamentoDB, contaMov, contaInvest, configs, lancamentoDB.DtLancamento, true);
+                await _connection.UpdateAsync<Lancamento>(lancamentoDB);
+
+                lancamento.FlLiquidado = lancamentoDB.FlLiquidado;
+                if (PertenceAoPeriodoSelecionado(lancamento))
+                {
+                    var item = Lancamentos.FirstOrDefault(x => x.IdLancamento == lancamento.IdLancamento);
+                    if (item != null)
+                        Lancamentos.Remove(item);
+
+                    var index = Lancamentos
+                        .TakeWhile(x => x.DtLancamento > lancamento.DtLancamento)
+                        .Count();
+
+                    Lancamentos.Insert(index, lancamento);
+                    await LoadRelatorio();
+                }
+
+            }
+
         }
 
         [RelayCommand]
@@ -237,10 +298,6 @@ namespace PeachWallet.ViewModel
         #endregion
 
         #region HELPERS
-        class Temporario
-        {
-            public int Ano { get; set; }
-        }
         public async Task LoadMesesAsync()
         {
             var today = DateTime.Now;
