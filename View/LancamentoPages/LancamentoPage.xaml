@@ -9,9 +9,8 @@
              Title="Lançamentos"
              x:Name="Root"
              x:DataType="vm:LancamentoVM">
-    
-    <Grid RowDefinitions="*, 60">
 
+    <Grid RowDefinitions="Auto, *">
         <VerticalStackLayout Padding="20" Spacing="20" Grid.Row="0">
             <components:MonthPickerField
                 WidthRequest="190"
@@ -90,13 +89,14 @@
                 </Border>
             </Grid>
 
-            <VerticalStackLayout Spacing="10">
-                <Grid ColumnDefinitions="*,Auto">
-                    <Label Text="Movimentações" Grid.Column="0"
+        </VerticalStackLayout>
+        <Grid RowDefinitions="Auto, *" Padding="20, 10" RowSpacing="10" Grid.Row="1">
+            <Grid ColumnDefinitions="*,Auto" Grid.Row="0">
+                <Label Text="Movimentações" Grid.Column="0"
                            VerticalOptions="Center"
                            FontAttributes="Bold"
                            FontSize="20" />
-                    <ImageButton BackgroundColor="Transparent" BorderColor="{StaticResource Primary}" BorderWidth="2"
+                <ImageButton BackgroundColor="Transparent" BorderColor="{StaticResource Primary}" BorderWidth="2"
                         CornerRadius="12"
                         WidthRequest="10"
                         HeightRequest="10"
@@ -104,79 +104,75 @@
                         Grid.Column="1"
                         VerticalOptions="Center"
                         Command="{Binding CriarLancamentoCommand}">
-                        <ImageButton.Source>
-                            <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Plus}" Color="{StaticResource Primary}" />
-                        </ImageButton.Source>
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Plus}" Color="{StaticResource Primary}" />
+                    </ImageButton.Source>
 
-                    </ImageButton>
-                </Grid>
-
-                <ScrollView HeightRequest="400">
-
-                    <CollectionView x:Name="lsvLancamentos"
+                </ImageButton>
+            </Grid>
+            <CollectionView x:Name="lsvLancamentos" Grid.Row="1"
                       ItemsSource="{Binding Lancamentos}"
-                      RemainingItemsThreshold="20"
+                      RemainingItemsThreshold="20" VerticalScrollBarVisibility="Always" VerticalOptions="FillAndExpand"
                       SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:LancamentoDTO">
-                                <Grid ColumnDefinitions="Auto,*,Auto, Auto" Padding="0,5" ColumnSpacing="10">
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:LancamentoDTO">
+                        <Grid ColumnDefinitions="Auto,*,Auto, Auto" Padding="0,5" ColumnSpacing="10">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer
                                              Command="{Binding BindingContext.EditarLancamentoCommand, Source={x:Reference Root}}"
                                             CommandParameter="{Binding .}" />
-                                    </Grid.GestureRecognizers>
+                            </Grid.GestureRecognizers>
 
-                                    <Border WidthRequest="45"
+                            <Border WidthRequest="45"
                                             HeightRequest="45"
                                             BackgroundColor="{Binding CorTexto}"
                                             StrokeThickness="0" StrokeShape="RoundRectangle 23" 
                                             Padding="10"
                                             VerticalOptions="Center">
-                                        <Image>
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="FASolid" Glyph="{Binding IconeLancamento}" Color="{StaticResource White}" />
-                                            </Image.Source>
-                                        </Image>
-                                    </Border>
+                                <Image>
+                                    <Image.Source>
+                                        <FontImageSource FontFamily="FASolid" Glyph="{Binding IconeLancamento}" Color="{StaticResource White}" />
+                                    </Image.Source>
+                                </Image>
+                            </Border>
 
-                                    <Grid Grid.Column="1" ColumnSpacing="2" VerticalOptions="Center" RowDefinitions="*,*">
-                                        <Label Text="{Binding Descricao}"
+                            <Grid Grid.Column="1" ColumnSpacing="2" VerticalOptions="Center" RowDefinitions="*,*">
+                                <Label Text="{Binding Descricao}"
                                                FontSize="16"
                                                FontAttributes="Bold" 
                                                TextColor="{StaticResource White}" Grid.Row="0" />
-                                        <Label Text="{Binding DtLancamento, StringFormat='{0:dd/MM/yyyy HH:mm}'}" FontSize="14" Grid.Row="1" />
-                                    </Grid>
-                                    
-                                    <Grid Grid.Column="2" VerticalOptions="Center" IsVisible="{Binding FlLiquidado}">
-                                        <Image WidthRequest="20" HeightRequest="20">
-                                            <Image.Source>
-                                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.CalendarCheck}" Color="{StaticResource White}" />
-                                            </Image.Source>
-                                        </Image>
-                                    </Grid>
-                                    
-                                    <Grid RowDefinitions="*,*" Grid.Column="3">
-                                        <Label
+                                <Label Text="{Binding DtLancamento, StringFormat='{0:dd/MM/yyyy HH:mm}'}" FontSize="14" Grid.Row="1" />
+                            </Grid>
+
+                            <Grid Grid.Column="2" VerticalOptions="Center" IsVisible="{Binding FlLiquidado}">
+                                <Image WidthRequest="20" HeightRequest="20">
+                                    <Image.Source>
+                                        <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.CalendarCheck}" Color="{StaticResource White}" />
+                                    </Image.Source>
+                                </Image>
+                            </Grid>
+
+                            <Grid RowDefinitions="*,*" Grid.Column="3">
+                                <Label
                                                Text="{Binding ValorFormatado, StringFormat='{0:C}'}"
                                                FontSize="14"
                                                FontAttributes="Bold" 
                                                TextColor="{Binding CorTexto}"
                                                VerticalOptions="Center" Grid.Row="0" />
-                                        <Label
+                                <Label
                                             Text="{Binding CreditoDebito}"
                                             TextColor="{StaticResource Gray100}" 
                                             FontSize="12" 
                                             HorizontalOptions="End" Grid.Row="1" />
-                                    </Grid>
+                            </Grid>
 
 
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </ScrollView>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
-            </VerticalStackLayout>
-        </VerticalStackLayout>
+
+        </Grid>
     </Grid>
 </ContentPage>

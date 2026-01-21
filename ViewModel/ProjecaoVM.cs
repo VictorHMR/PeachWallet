@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using UraniumUI.Dialogs.Mopups;
@@ -47,15 +48,19 @@ namespace PeachWallet.ViewModel
 
             foreach (var item in lstProjecoes)
             {
-                int meses = DateTime.Now.Date.Year == item.Ano ? 12 - DateTime.Now.Month + 1 : 12;
+                DateTime fimDoAno = new DateTime(item.Ano, 12, 31);
+                DateTime inicioDoAno = new DateTime(item.Ano, 1, 1);
+                Expression<Func<Lancamento, bool>> predicate = x => (x.DtLancamento <= fimDoAno && x.DtLancamento >= inicioDoAno && x.TipoLancamento == (int)TiposLancamento.Investimento && x.FlLiquidado);
+
                 double SaltoTotal = Projecoes.FirstOrDefault(x => x.Ano == item.Ano - 1)?.ValorTotal ?? SaldoAtual;
+                double investidoTotal = await _connection.SumValueAsync<Lancamento>(predicate, x => x.Valor);
                 Projecoes.Add(new ProjecaoDTO
                 {
                     IdProjecao = item.Id,
                     Ano = item.Ano,
                     InvestidoMensal = item.InvestidoMensal,
-                    Investido = item.InvestidoMensal * meses,
-                    ValorTotal = item.InvestidoMensal * meses + SaltoTotal
+                    Investido = item.InvestidoMensal * 12,
+                    ValorTotal = item.InvestidoMensal * 12 + SaltoTotal - investidoTotal
                 });
                 AtualizarUltimoItem();
             }
@@ -104,8 +109,6 @@ namespace PeachWallet.ViewModel
         [RelayCommand]
         public async Task EditarProjecaoAsync(ProjecaoDTO projecao)
         {
-            int meses = DateTime.Now.Date.Year == projecao.Ano ? 12 - DateTime.Now.Month + 1 : 12;
-            double SaltoTotal = Projecoes.FirstOrDefault(x => x.Ano == projecao.Ano - 1)?.ValorTotal ?? SaldoAtual;
 
             var result = await PromptService.ShowTextPromptAsync(
                 title: "Editar Projeção",
@@ -116,28 +119,13 @@ namespace PeachWallet.ViewModel
 
             if (string.IsNullOrEmpty(result))
                 return;
-
             projecao.InvestidoMensal = double.Parse(result);
-            projecao.ValorTotal = projecao.InvestidoMensal * meses + SaltoTotal;
 
-            await _connection.UpdateAsync(new Projecao
-            {
-                Id = projecao.IdProjecao,
-                Ano = projecao.Ano,
-                InvestidoMensal = projecao.InvestidoMensal,
-            });
-
-            var existente = Projecoes.FirstOrDefault(x => x.IdProjecao == projecao.IdProjecao);
-            if (existente == null)
-                return;
-            existente.Ano = projecao.Ano;
-            existente.InvestidoMensal = projecao.InvestidoMensal;
-            existente.Investido = projecao.InvestidoMensal * meses;
-            existente.ValorTotal = projecao.ValorTotal;
+            await EditarProjecao(projecao);
 
             var projecoesFuturas = Projecoes.Where(x => x.Ano > projecao.Ano).ToList();
             foreach (var item in projecoesFuturas)
-                await EditarProjecaoAsync(item);
+                await EditarProjecao(item);
         }
 
         [RelayCommand]
@@ -160,6 +148,29 @@ namespace PeachWallet.ViewModel
                 Projecoes.Remove(item);
                 AtualizarUltimoItem();
             }
+        }
+
+        private async Task EditarProjecao(ProjecaoDTO projecao)
+        {
+            int meses = DateTime.Now.Date.Year == projecao.Ano ? 12 - DateTime.Now.Month + 1 : 12;
+            double SaltoTotal = Projecoes.FirstOrDefault(x => x.Ano == projecao.Ano - 1)?.ValorTotal ?? SaldoAtual;
+
+            projecao.ValorTotal = projecao.InvestidoMensal * meses + SaltoTotal;
+
+            await _connection.UpdateAsync(new Projecao
+            {
+                Id = projecao.IdProjecao,
+                Ano = projecao.Ano,
+                InvestidoMensal = projecao.InvestidoMensal,
+            });
+
+            var existente = Projecoes.FirstOrDefault(x => x.IdProjecao == projecao.IdProjecao);
+            if (existente == null)
+                return;
+            existente.Ano = projecao.Ano;
+            existente.InvestidoMensal = projecao.InvestidoMensal;
+            existente.Investido = projecao.InvestidoMensal * meses;
+            existente.ValorTotal = projecao.ValorTotal;
         }
 
         private void AtualizarUltimoItem()
