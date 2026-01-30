@@ -127,6 +127,17 @@ namespace PeachWallet.ViewModel
         [RelayCommand]
         public async Task CriarLancamentoAsync()
         {
+            var diaHoje = DateTime.Now.Day;
+            var ultimoDiaDoMes = DateTime.DaysInMonth(MesSelecionado.Ano, MesSelecionado.Mes);
+
+            var diaFinal = Math.Min(diaHoje, ultimoDiaDoMes);
+
+            var dataPadrao = new DateTime(
+                MesSelecionado.Ano,
+                MesSelecionado.Mes,
+                diaFinal
+            );
+
             await MopupService.Instance.PushAsync(
                     new LancamentoPopup(PopupMode.Create, async (lancamento, mode) =>
                     {
@@ -161,7 +172,7 @@ namespace PeachWallet.ViewModel
                             await LoadMesesAsync();
                         }
                             
-                    }, null, new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, DateTime.Now.Day))
+                    }, null, dataPadrao)
             );
 
         }
@@ -322,7 +333,7 @@ namespace PeachWallet.ViewModel
                 return;
             bool PeriodoAtual = MesSelecionado.Ano == DateTime.Now.Year && MesSelecionado.Mes == DateTime.Now.Month;
 
-            ResumoMensalDTO resumo = await _relatorioRepository.GetResumoMes(MesSelecionado.Ano, MesSelecionado.Mes);
+            ResumoMensalDTO resumo = await _relatorioRepository.GetResumoMes(MesSelecionado.Ano, MesSelecionado.Mes, configs.NrDiaFechamentoFatura);
             EntradasPeriodo = resumo.EntradaTotal;
             GastosPeriodo = resumo.GastosLiquidados + resumo.GastosPendentes;
             GastosCreditoPeriodo = resumo.GastosCreditoLiquidados + resumo.GastosCreditoPendentes;
@@ -338,7 +349,7 @@ namespace PeachWallet.ViewModel
                 {
                     if (mes.Ano < MesSelecionado.Ano || (mes.Ano == MesSelecionado.Ano && mes.Mes < MesSelecionado.Mes))
                     {
-                        ResumoMensalDTO resumoMesAnterior = await _relatorioRepository.GetResumoMes(mes.Ano, mes.Mes);
+                        ResumoMensalDTO resumoMesAnterior = await _relatorioRepository.GetResumoMes(mes.Ano, mes.Mes, configs.NrDiaFechamentoFatura);
                         SobrasMesesAnteriores += resumoMesAnterior.EntradasPendentes - resumoMesAnterior.GastosPendentes - resumoMesAnterior.GastosCreditoPendentes - resumoMesAnterior.InvestimentoPendentes;
                     }
                 }

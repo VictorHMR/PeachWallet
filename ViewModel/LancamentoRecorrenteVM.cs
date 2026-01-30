@@ -223,7 +223,7 @@ namespace PeachWallet.ViewModel
 
                 var lancamentoDB = new Lancamento
                 {
-                    Descricao = lancamentoRecorrente.Descricao,
+                    Descricao = lancamentoRecorrente.Descricao + $"{i}/{nrMesesAFrente}",
                     DtLancamento = dataLancamento,
                     TipoLancamento = (int)lancamentoRecorrente.TipoLancamento,
                     Valor = lancamentoRecorrente.Valor,
@@ -234,10 +234,6 @@ namespace PeachWallet.ViewModel
                 await _connection.CreateAsync(lancamentoDB);
             }
         }
-
-
-
-
 
         public async Task LoadRelatorio()
         {
