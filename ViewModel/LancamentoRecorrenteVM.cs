@@ -215,15 +215,20 @@ namespace PeachWallet.ViewModel
         {
             int nrMesesAFrente = lancamentoRecorrente.NrMeses ?? 1;
 
-            var dataBase = lancamentoRecorrente.DtLancamento.Date;
+            var dataBase = new DateTime(lancamentoRecorrente.DtLancamento.Year, 
+                                        lancamentoRecorrente.DtLancamento.Month, 
+                                        lancamentoRecorrente.DtLancamento.Day, 
+                                        DateTime.Now.Hour, 
+                                        DateTime.Now.Minute, 
+                                        DateTime.Now.Second);
 
-            for (int i = 1; i <= nrMesesAFrente; i++)
+            for (int i = 0; i < nrMesesAFrente; i++)
             {
                 var dataLancamento = dataBase.AddMonths(i);
 
                 var lancamentoDB = new Lancamento
                 {
-                    Descricao = lancamentoRecorrente.Descricao + $"{i}/{nrMesesAFrente}",
+                    Descricao = lancamentoRecorrente.Descricao + $" {i + 1}/{nrMesesAFrente}",
                     DtLancamento = dataLancamento,
                     TipoLancamento = (int)lancamentoRecorrente.TipoLancamento,
                     Valor = lancamentoRecorrente.Valor,

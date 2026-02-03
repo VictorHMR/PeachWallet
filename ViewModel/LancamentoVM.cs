@@ -135,7 +135,10 @@ namespace PeachWallet.ViewModel
             var dataPadrao = new DateTime(
                 MesSelecionado.Ano,
                 MesSelecionado.Mes,
-                diaFinal
+                diaFinal,
+                DateTime.Now.Hour,
+                DateTime.Now.Minute,
+                DateTime.Now.Second
             );
 
             await MopupService.Instance.PushAsync(
@@ -143,10 +146,17 @@ namespace PeachWallet.ViewModel
                     {
                         if (mode == PopupMode.Create && lancamento != null)
                         {
+                            var dtLancamento = new DateTime(
+                                                lancamento.DtLancamento.Year,
+                                                lancamento.DtLancamento.Month,
+                                                lancamento.DtLancamento.Day,
+                                                DateTime.Now.Hour,
+                                                DateTime.Now.Minute,
+                                                DateTime.Now.Second);
                             Lancamento lancamentoDB = new Lancamento
                             {
                                 Descricao = lancamento.Descricao,
-                                DtLancamento = lancamento.DtLancamento,
+                                DtLancamento = dtLancamento,
                                 TipoLancamento = (int)lancamento.TipoLancamento,
                                 Valor = lancamento.Valor,
                                 IdLancamentoRecorrente = lancamento.IdLancamentoRecorrente,
@@ -158,6 +168,7 @@ namespace PeachWallet.ViewModel
 
                             lancamento.FlLiquidado = lancamentoDB.FlLiquidado;
                             lancamento.CorTexto = LancamentoUtils.ObterCorTexto(lancamento.TipoLancamento);
+                            lancamento.DtLancamento = dtLancamento;
 
                             if (PertenceAoPeriodoSelecionado(lancamento))
                             {
@@ -180,11 +191,17 @@ namespace PeachWallet.ViewModel
         [RelayCommand]
         public async Task EditarLancamentoAsync(LancamentoDTO lancamento)
         {
+            var dtLancamento = new DateTime(lancamento.DtLancamento.Year,
+                                            lancamento.DtLancamento.Month,
+                                            lancamento.DtLancamento.Day,
+                                            lancamento.DtLancamento.Hour,
+                                            lancamento.DtLancamento.Minute,
+                                            lancamento.DtLancamento.Second);
             LancamentoDTO lancamentoAntigo = new LancamentoDTO
             {
                 IdLancamento = lancamento.IdLancamento,
                 IdLancamentoRecorrente = lancamento.IdLancamentoRecorrente,
-                DtLancamento = lancamento.DtLancamento,
+                DtLancamento = dtLancamento,
                 TipoLancamento = lancamento.TipoLancamento,
                 Valor = lancamento.Valor,
                 Descricao = lancamento.Descricao,
@@ -206,7 +223,14 @@ namespace PeachWallet.ViewModel
                                 lancamentoDB.FlLiquidado = false;
                             }
 
-                            lancamentoDB.DtLancamento = lancamento.DtLancamento;
+                            lancamentoDB.DtLancamento = new DateTime(
+                                                lancamento.DtLancamento.Year,
+                                                lancamento.DtLancamento.Month,
+                                                lancamento.DtLancamento.Day,
+                                                lancamentoAntigo.DtLancamento.Hour,
+                                                lancamentoAntigo.DtLancamento.Minute,
+                                                lancamentoAntigo.DtLancamento.Second
+                                            );
                             lancamentoDB.TipoLancamento = (int)lancamento.TipoLancamento;
                             lancamentoDB.Valor = lancamento.Valor;
                             lancamentoDB.Descricao = lancamento.Descricao;
@@ -216,6 +240,7 @@ namespace PeachWallet.ViewModel
 
                             lancamento.FlLiquidado = lancamentoDB.FlLiquidado;
                             lancamento.CorTexto = LancamentoUtils.ObterCorTexto(lancamento.TipoLancamento);
+                            lancamento.DtLancamento = lancamentoDB.DtLancamento;
 
                             if (PertenceAoPeriodoSelecionado(lancamento))
                             {
@@ -234,7 +259,7 @@ namespace PeachWallet.ViewModel
                             await LoadMesesAsync();
                         }
 
-                    }, lancamento, new DateTime(lancamento.DtLancamento.Year, lancamento.DtLancamento.Month, lancamento.DtLancamento.Day), async dto => await RemoverLancamentoAsync(dto), async dto => await ForcarLiquidacaoLancamentoAsync(dto))
+                    }, lancamento, new DateTime(lancamento.DtLancamento.Year, lancamento.DtLancamento.Month, lancamento.DtLancamento.Day, lancamento.DtLancamento.Hour, lancamento.DtLancamento.Minute, lancamento.DtLancamento.Second), async dto => await RemoverLancamentoAsync(dto), async dto => await ForcarLiquidacaoLancamentoAsync(dto))
             );
 
         }
