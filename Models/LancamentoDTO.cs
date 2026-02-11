@@ -44,6 +44,9 @@ namespace PeachWallet.Models
                     TiposLancamento.Investimento =>
                         Solid.MoneyBillTrendUp,
 
+                    TiposLancamento.Saida_Reserva =>
+                        Solid.MoneyBillTrendUp,
+
                     _ =>
                         Solid.Question
                 };
@@ -59,6 +62,7 @@ namespace PeachWallet.Models
                     TiposLancamento.Saida => "-",
                     TiposLancamento.Entrada => "+",
                     TiposLancamento.Investimento => "+",
+                    TiposLancamento.Saida_Reserva => "-",
                     _ => string.Empty
                 };
 

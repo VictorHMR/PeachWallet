@@ -21,6 +21,9 @@ namespace PeachWallet.Utils
                 TiposLancamento.Investimento =>
                     (Color)Application.Current.Resources["Investment"],
 
+                TiposLancamento.Saida_Reserva =>
+                    (Color)Application.Current.Resources["Saida_Reserva"],
+
                 _ => Colors.White
             };
         }
@@ -34,7 +37,8 @@ namespace PeachWallet.Utils
     {
         Saida = 0,
         Entrada = 1,
-        Investimento =2
+        Investimento =2,
+        Saida_Reserva =3
     }
 
 }

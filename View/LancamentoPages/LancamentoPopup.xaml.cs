@@ -26,7 +26,7 @@ public partial class LancamentoPopup
         _dataInicial = dataInicial ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
         dpdTipoLancamento.ItemsSource = Enum.GetValues(typeof(TiposLancamento))
             .Cast<TiposLancamento>()
-            .Select(e => new TipoLancamentoPickerItem { Display = e.ToString(), Id = e })
+            .Select(e => new TipoLancamentoPickerItem { Display = e.ToString().Replace("_", " "), Id = e })
             .ToList();
 
         dpdTipoLancamento.ItemDisplayBinding = new Binding("Display");
@@ -127,6 +127,7 @@ public partial class LancamentoPopup
         switch (selected.Id)
         {
             case TiposLancamento.Saida:
+            case TiposLancamento.Saida_Reserva:
                 swtCred.IsToggled = true;
                 swContainer.IsVisible = true;
                 Grid.SetColumnSpan(dpdTipoLancamento, 1);

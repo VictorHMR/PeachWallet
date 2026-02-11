@@ -45,7 +45,7 @@ namespace PeachWallet.ViewModel
         private double sobrasPeriodo;
 
         private bool _dataCompleted;
-        private int _pageSize = 10;
+        private int _pageSize = 999;
         private int _pageNumber = 1;
 
         ContaBancaria contaMov;

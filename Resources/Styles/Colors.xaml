@@ -50,6 +50,9 @@
     <Color x:Key="InvestmentLight">#CBB7E2</Color>
     <Color x:Key="InvestmentDark">#3B2E4A</Color>
     <!-- Investimentos -->
+    <Color x:Key="Saida_Reserva">#8a7500</Color>
+
+
     <Color x:Key="AvaliableLight">#eee5bf</Color>
     <Color x:Key="AvaliableDark">#3b3931</Color>
     <!-- Disponivel -->

@@ -93,7 +93,7 @@ namespace PeachWallet.Services
         {
             if (configs.IdContaMovimentacao is not null)
             {
-                if (lancamento.TipoLancamento == TiposLancamento.Saida)
+                if (lancamento.TipoLancamento == TiposLancamento.Saida || lancamento.TipoLancamento == TiposLancamento.Saida_Reserva)
                     contaMov.Saldo += lancamento.Valor;
                 else if (lancamento.TipoLancamento == TiposLancamento.Entrada)
                     contaMov.Saldo -= lancamento.Valor;
