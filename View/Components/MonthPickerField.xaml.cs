@@ -36,6 +36,9 @@ public partial class MonthPickerField : ContentView
     public static readonly BindableProperty DisplayTextProperty =
         BindableProperty.Create(nameof(DisplayText), typeof(string), typeof(MonthPickerField));
 
+    public static readonly BindableProperty HasIconProperty =
+        BindableProperty.Create(nameof(HasIcon), typeof(bool), typeof(MonthPickerField), false);
+
     // ======================
     // Properties
     // ======================
@@ -68,6 +71,12 @@ public partial class MonthPickerField : ContentView
     {
         get => (string)GetValue(DisplayTextProperty);
         set => SetValue(DisplayTextProperty, value);
+    }
+
+    public bool HasIcon
+    {
+        get => (bool)GetValue(HasIconProperty);
+        set => SetValue(HasIconProperty, value);
     }
 
     // ======================
@@ -110,7 +119,13 @@ public partial class MonthPickerField : ContentView
             return;
         }
 
+        if (string.IsNullOrEmpty(control.DisplayMember))
+        {
+            control.DisplayText = newValue.ToString();
+            return;
+        }
+
         var prop = newValue.GetType().GetProperty(control.DisplayMember);
-        control.DisplayText = prop?.GetValue(newValue)?.ToString() ?? string.Empty;
+        control.DisplayText = prop?.GetValue(newValue)?.ToString() ?? newValue.ToString();
     }
 }

@@ -19,7 +19,7 @@
 
         <Grid ColumnDefinitions="Auto,*, Auto" VerticalOptions="Center" Padding="0, 10" ColumnSpacing="5">
 
-            <Image
+            <Image IsVisible="{Binding HasIcon, Source={x:Reference Root}}"
                 Source="{FontImageSource FontFamily=FASolid,
                                           Glyph={x:Static fa:Solid.Calendar},
                                           Color=White}"

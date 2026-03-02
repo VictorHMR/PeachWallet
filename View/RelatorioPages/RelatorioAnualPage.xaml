@@ -20,7 +20,8 @@
             DisplayText="Display"
             ItemsSource="{Binding AnosDisponiveis}"
             SelectedItem="{Binding AnoSelecionado}"
-            SelectionChangedCommand="{Binding AnoSelecionadoCommand}" />
+            SelectionChangedCommand="{Binding AnoSelecionadoCommand}"
+            HasIcon="True"/>
         <!-- CARD DA TABELA -->
         <ScrollView Grid.Row="1">
             <Frame 

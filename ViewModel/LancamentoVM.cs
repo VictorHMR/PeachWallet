@@ -10,9 +10,11 @@ using PeachWallet.Utils;
 using PeachWallet.View;
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using UraniumUI.Icons.FontAwesome;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PeachWallet.ViewModel
 {
@@ -25,11 +27,29 @@ namespace PeachWallet.ViewModel
         private readonly LiquidacaoService _liquidacaoService;
 
         public ObservableCollection<LancamentoDTO> Lancamentos { get; } = [];
-        [ObservableProperty]
-        private ObservableCollection<MesAnoLancamentoDTO> mesesDisponiveis = [];
 
         [ObservableProperty]
-        private MesAnoLancamentoDTO? mesSelecionado;
+        private ObservableCollection<MesAnoLancamentoDTO> periodosDisponiveis = [];
+
+        [ObservableProperty]
+        private MesAnoLancamentoDTO? periodoSelecionado;
+        [ObservableProperty]
+        private ObservableCollection<int> anos = [];
+
+        [ObservableProperty]
+        private int? anoSelecionado;
+
+        [ObservableProperty]
+        private ObservableCollection<MesItem> meses = [];
+
+        [ObservableProperty]
+        private MesItem? mesSelecionado;
+
+        [ObservableProperty]
+        private ObservableCollection<string> dias = [];
+
+        [ObservableProperty]
+        private string? diaSelecionado;
 
         [ObservableProperty]
         private double gastosPeriodo;
@@ -67,7 +87,7 @@ namespace PeachWallet.ViewModel
             if (configs.IdContaInvestimento is not null)
                 contaInvest = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaInvestimento);
 
-            await LoadMesesAsync();
+            await LoadPeriodosAsync();
             await ReloadLancamentoAsync();
             await LoadRelatorio();
         }
@@ -79,14 +99,17 @@ namespace PeachWallet.ViewModel
             if (_dataCompleted)
                 return;
 
-            if (MesSelecionado == null)
+            if (PeriodoSelecionado == null)
                 return;
 
-            DateTime primeiroDiaMes = new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, 1);
-            DateTime primeiroDiaProximoMes = primeiroDiaMes.AddMonths(1);
+            int.TryParse(DiaSelecionado, out int Dia);
 
-            DateTime dataFinalFatura = new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, configs.NrDiaFechamentoFatura ?? 1);
-            DateTime dataInicialFatura = dataFinalFatura.AddMonths(-1);
+            DateTime primeiroDiaMes = new DateTime(PeriodoSelecionado.Ano, PeriodoSelecionado.Mes, Dia == 0 ? 1 : Dia);
+            DateTime primeiroDiaProximoMes = Dia == 0 ? primeiroDiaMes.AddMonths(1) : primeiroDiaMes.AddDays(1);
+
+            DateTime dataFinalFatura = new DateTime(PeriodoSelecionado.Ano, PeriodoSelecionado.Mes, Dia == 0 ? (configs.NrDiaFechamentoFatura ?? 1) : Dia);
+            dataFinalFatura = Dia != 0 ? dataFinalFatura.AddDays(1) : dataFinalFatura;
+            DateTime dataInicialFatura = Dia == 0 ? dataFinalFatura.AddMonths(-1) : dataFinalFatura.AddDays(-1);
 
             Expression<Func<Lancamento, bool>> predicate = x =>
                 (x.DtLancamento >= primeiroDiaMes &&
@@ -128,13 +151,13 @@ namespace PeachWallet.ViewModel
         public async Task CriarLancamentoAsync()
         {
             var diaHoje = DateTime.Now.Day;
-            var ultimoDiaDoMes = DateTime.DaysInMonth(MesSelecionado.Ano, MesSelecionado.Mes);
+            var ultimoDiaDoMes = DateTime.DaysInMonth(PeriodoSelecionado.Ano, PeriodoSelecionado.Mes);
 
             var diaFinal = Math.Min(diaHoje, ultimoDiaDoMes);
 
             var dataPadrao = new DateTime(
-                MesSelecionado.Ano,
-                MesSelecionado.Mes,
+                PeriodoSelecionado.Ano,
+                PeriodoSelecionado.Mes,
                 diaFinal,
                 DateTime.Now.Hour,
                 DateTime.Now.Minute,
@@ -180,7 +203,7 @@ namespace PeachWallet.ViewModel
                                 await LoadRelatorio();
                             }
 
-                            await LoadMesesAsync();
+                            await LoadPeriodosAsync();
                         }
                             
                     }, null, dataPadrao)
@@ -256,7 +279,7 @@ namespace PeachWallet.ViewModel
                                 await LoadRelatorio();
                             }
 
-                            await LoadMesesAsync();
+                            await LoadPeriodosAsync();
                         }
 
                     }, lancamento, new DateTime(lancamento.DtLancamento.Year, lancamento.DtLancamento.Month, lancamento.DtLancamento.Day, lancamento.DtLancamento.Hour, lancamento.DtLancamento.Minute, lancamento.DtLancamento.Second), async dto => await RemoverLancamentoAsync(dto), async dto => await ForcarLiquidacaoLancamentoAsync(dto))
@@ -279,7 +302,7 @@ namespace PeachWallet.ViewModel
                 var item = Lancamentos.FirstOrDefault(x => x.IdLancamento == lancamento.IdLancamento);
                 if (item != null)
                     Lancamentos.Remove(item);
-                if (lancamento.DtLancamento.Year == MesSelecionado.Ano && lancamento.DtLancamento.Month == MesSelecionado.Mes)
+                if (lancamento.DtLancamento.Year == PeriodoSelecionado.Ano && lancamento.DtLancamento.Month == PeriodoSelecionado.Mes)
                     await LoadRelatorio();
             }
 
@@ -323,18 +346,45 @@ namespace PeachWallet.ViewModel
         }
 
         [RelayCommand]
-        private async Task MesSelecionadoAsync(MesAnoLancamentoDTO mes)
+        private async Task AnoSelecionadoAsync(int ano)
+        {
+            if (ano == null)
+                return;
+
+            var anoAtual = ano == DateTime.Now.Year;
+
+            if (!anoAtual)
+                PeriodoSelecionado = PeriodosDisponiveis.FirstOrDefault(x => x.Ano == ano);
+            else
+                PeriodoSelecionado = PeriodosDisponiveis.FirstOrDefault(x => x.Ano == ano && x.Mes == DateTime.Now.Month) ?? PeriodosDisponiveis.FirstOrDefault(x => x.Ano == ano);
+
+            await LoadMesesAsync();
+            await ReloadLancamentoAsync();
+            await LoadRelatorio();
+        }
+
+        [RelayCommand]
+        private async Task MesSelecionadoAsync(MesItem mes)
         {
             if (mes == null)
                 return;
-            MesSelecionado = mes;
+            PeriodoSelecionado = PeriodosDisponiveis.FirstOrDefault(x=> x.Ano == AnoSelecionado && x.Mes == mes.Numero);
+            await LoadDiasAsync();
+            await ReloadLancamentoAsync();
+            await LoadRelatorio();
+        }
+
+        [RelayCommand]
+        private async Task DiaSelecionadoAsync(string? dia)
+        {
+            DiaSelecionado = dia == "Não Selecionado" ? " " : dia;
             await ReloadLancamentoAsync();
             await LoadRelatorio();
         }
         #endregion
 
         #region HELPERS
-        public async Task LoadMesesAsync()
+        public async Task LoadPeriodosAsync()
         {
             var today = DateTime.Now;
 
@@ -343,53 +393,106 @@ namespace PeachWallet.ViewModel
             if (meses.Count() < 1 || !meses.Any(x=> x.Ano == today.Year && x.Mes == today.Month))
                 meses.Insert(0, new MesAnoLancamentoDTO { Mes = today.Month, Ano = today.Year });
 
-            MesesDisponiveis = new ObservableCollection<MesAnoLancamentoDTO>(meses);
+            PeriodosDisponiveis = new ObservableCollection<MesAnoLancamentoDTO>(meses);
 
-            var mesAtual = MesesDisponiveis.FirstOrDefault(x => x.Ano == today.Year && x.Mes == today.Month);
-            if(MesSelecionado is null)
-                MesSelecionado = mesAtual;
+            var mesAtual = PeriodosDisponiveis.FirstOrDefault(x => x.Ano == today.Year && x.Mes == today.Month);
+            if(PeriodoSelecionado is null)
+                PeriodoSelecionado = mesAtual;
             else
-                MesSelecionado = MesSelecionado == mesAtual ? mesAtual : MesSelecionado;
+                PeriodoSelecionado = PeriodoSelecionado == mesAtual ? mesAtual : PeriodoSelecionado;
+
+            Anos = new ObservableCollection<int>(PeriodosDisponiveis.Select(x => x.Ano).Distinct());
+            AnoSelecionado = PeriodoSelecionado.Ano;
+
+            await LoadMesesAsync();
+            await LoadDiasAsync();
+        }
+        public async Task LoadMesesAsync()
+        {
+            Meses = new ObservableCollection<MesItem>(PeriodosDisponiveis.Where(x => x.Ano == AnoSelecionado).Select(m => new MesItem { Nome = m.Display, Numero = m.Mes }).Distinct().OrderBy(m => m.Numero));
+            MesSelecionado = Meses.FirstOrDefault(x => x.Numero == PeriodoSelecionado.Mes);
+
+            await LoadDiasAsync();
+        }
+        public async Task LoadDiasAsync()
+        {
+            DiaSelecionado = " ";
+            if (PeriodoSelecionado != null)
+            {
+                var lstDias = new List<string>();
+                lstDias.Add("Não Selecionado");
+
+                var lstDiasDB = await _relatorioRepository.GetDiasComLancamentos(AnoSelecionado!.Value, MesSelecionado!.Numero);
+
+                foreach (var dia in lstDiasDB)
+                    lstDias.Add(dia.ToString());
+                Dias = new ObservableCollection<string>(lstDias);
+            }
         }
 
         public async Task LoadRelatorio()
         {
             if (contaMov == null || contaInvest == null)
                 return;
-            bool PeriodoAtual = MesSelecionado.Ano == DateTime.Now.Year && MesSelecionado.Mes == DateTime.Now.Month;
+            int.TryParse(DiaSelecionado, out int ParsedDiaSelecionado);
 
-            ResumoMensalDTO resumo = await _relatorioRepository.GetResumoMes(MesSelecionado.Ano, MesSelecionado.Mes, configs.NrDiaFechamentoFatura);
-            EntradasPeriodo = resumo.EntradaTotal;
-            GastosPeriodo = resumo.GastosLiquidados + resumo.GastosPendentes;
-            GastosCreditoPeriodo = resumo.GastosCreditoLiquidados + resumo.GastosCreditoPendentes;
-            InvestidoPeriodo = resumo.InvestidoTotal;
-
-            SobrasPeriodo = resumo.ValorDisponivelMes;
-            if(PeriodoAtual)
-                DisponivelPeriodo = contaMov.Saldo + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
+            if (ParsedDiaSelecionado != 0)
+            {
+                await LoadRelatorioDia(ParsedDiaSelecionado);
+                return;
+            }
             else
             {
-                double SobrasMesesAnteriores = 0;
-                foreach (var mes in MesesDisponiveis)
+
+                bool PeriodoAtual = PeriodoSelecionado.Ano == DateTime.Now.Year && PeriodoSelecionado.Mes == DateTime.Now.Month;
+
+                ResumoMensalDTO resumo = await _relatorioRepository.GetResumoMes(PeriodoSelecionado.Ano, PeriodoSelecionado.Mes, configs.NrDiaFechamentoFatura);
+                EntradasPeriodo = resumo.EntradaTotal;
+                GastosPeriodo = resumo.GastosLiquidados + resumo.GastosPendentes;
+                GastosCreditoPeriodo = resumo.GastosCreditoLiquidados + resumo.GastosCreditoPendentes;
+                InvestidoPeriodo = resumo.InvestidoTotal;
+
+                SobrasPeriodo = resumo.ValorDisponivelMes;
+                if (PeriodoAtual)
+                    DisponivelPeriodo = contaMov.Saldo + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
+                else
                 {
-                    if (mes.Ano < MesSelecionado.Ano || (mes.Ano == MesSelecionado.Ano && mes.Mes < MesSelecionado.Mes))
+                    double SobrasMesesAnteriores = 0;
+                    foreach (var mes in PeriodosDisponiveis)
                     {
-                        ResumoMensalDTO resumoMesAnterior = await _relatorioRepository.GetResumoMes(mes.Ano, mes.Mes, configs.NrDiaFechamentoFatura);
-                        SobrasMesesAnteriores += resumoMesAnterior.EntradasPendentes - resumoMesAnterior.GastosPendentes - resumoMesAnterior.GastosCreditoPendentes - resumoMesAnterior.InvestimentoPendentes;
+                        if (mes.Ano < PeriodoSelecionado.Ano || (mes.Ano == PeriodoSelecionado.Ano && mes.Mes < PeriodoSelecionado.Mes))
+                        {
+                            ResumoMensalDTO resumoMesAnterior = await _relatorioRepository.GetResumoMes(mes.Ano, mes.Mes, configs.NrDiaFechamentoFatura);
+                            SobrasMesesAnteriores += resumoMesAnterior.EntradasPendentes - resumoMesAnterior.GastosPendentes - resumoMesAnterior.GastosCreditoPendentes - resumoMesAnterior.InvestimentoPendentes;
+                        }
                     }
+                    DisponivelPeriodo = contaMov.Saldo + SobrasMesesAnteriores + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
                 }
-                DisponivelPeriodo = contaMov.Saldo + SobrasMesesAnteriores + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
+            }
+        }
+        public async Task LoadRelatorioDia(int Dia)
+        {
+            if(Dia != 0)
+            {
+                ResumoMensalDTO resumo = await _relatorioRepository.GetResumoDia(PeriodoSelecionado.Ano, PeriodoSelecionado.Mes, Dia);
+                EntradasPeriodo = resumo.EntradaTotal;
+                GastosPeriodo = resumo.GastosLiquidados + resumo.GastosPendentes;
+                GastosCreditoPeriodo = resumo.GastosCreditoLiquidados + resumo.GastosCreditoPendentes;
+                InvestidoPeriodo = resumo.InvestidoTotal;
+
+                DisponivelPeriodo = 0;
+                SobrasPeriodo = 0;
             }
         }
 
         private bool PertenceAoPeriodoSelecionado(LancamentoDTO lancamento)
         {
-            DateTime primeiroDiaMes = new DateTime(MesSelecionado.Ano, MesSelecionado.Mes, 1);
+            DateTime primeiroDiaMes = new DateTime(PeriodoSelecionado.Ano, PeriodoSelecionado.Mes, 1);
             DateTime primeiroDiaProximoMes = primeiroDiaMes.AddMonths(1);
 
             DateTime dataFinalFatura = new DateTime(
-                MesSelecionado.Ano,
-                MesSelecionado.Mes,
+                PeriodoSelecionado.Ano,
+                PeriodoSelecionado.Mes,
                 configs.NrDiaFechamentoFatura ?? 1
             );
 
@@ -406,5 +509,15 @@ namespace PeachWallet.ViewModel
         }
 
         #endregion
+    }
+
+    public class MesItem
+    {
+        public int Numero { get; set; }
+        public string Nome { get; set; }
+
+        public override string ToString() => Nome;
+
+
     }
 }

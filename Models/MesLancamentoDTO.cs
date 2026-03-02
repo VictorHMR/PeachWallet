@@ -12,7 +12,7 @@ public class MesAnoLancamentoDTO
             if(Mes != 0)
             {
                 var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Mes);
-                return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(monthName) + $"/{Ano % 100:D2}";
+                return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(monthName);
             }
             else
                 return Ano.ToString();

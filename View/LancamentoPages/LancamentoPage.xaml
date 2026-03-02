@@ -12,14 +12,23 @@
 
     <Grid RowDefinitions="Auto, *">
         <VerticalStackLayout Padding="20" Spacing="20" Grid.Row="0">
-            <components:MonthPickerField
-                WidthRequest="190"
-                DisplayMember="Display"
-                DisplayText="Display"
-                ItemsSource="{Binding MesesDisponiveis}"
-                SelectedItem="{Binding MesSelecionado}"
-                SelectionChangedCommand="{Binding MesSelecionadoCommand}" />
-
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
+                <components:MonthPickerField
+                    ItemsSource="{Binding Dias}"
+                    SelectedItem="{Binding DiaSelecionado}"
+                    SelectionChangedCommand="{Binding DiaSelecionadoCommand}" 
+                    HasIcon="True"/>
+                <components:MonthPickerField
+                    DisplayMember="Display"
+                    DisplayText="Display"
+                    ItemsSource="{Binding Meses}"
+                    SelectedItem="{Binding MesSelecionado}"
+                    SelectionChangedCommand="{Binding MesSelecionadoCommand}" />
+                <components:MonthPickerField
+                    ItemsSource="{Binding Anos}"
+                    SelectedItem="{Binding AnoSelecionado}"
+                    SelectionChangedCommand="{Binding AnoSelecionadoCommand}" />
+            </HorizontalStackLayout>
             <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
                 <Border Grid.Row="0" Grid.Column="0" HeightRequest="75"
                         BackgroundColor="{StaticResource NegativeDark}"
