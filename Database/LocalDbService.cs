@@ -90,6 +90,7 @@ namespace PeachWallet.Database
             await _connection.CreateTableAsync<ContaBancaria>();
             await _connection.CreateTableAsync<Projecao>();
             await _connection.CreateTableAsync<LancamentoRecorrente>();
+            await _connection.CreateTableAsync<SaldoMes>();
         }
 
         public async Task<T> GetAsync<T>(Expression<Func<T, bool>> predicate = null) where T : new()

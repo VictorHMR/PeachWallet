@@ -1,11 +1,13 @@
 ﻿using PeachWallet.Database;
 using PeachWallet.Database.Models;
+using PeachWallet.Database.Repositories;
 using PeachWallet.Models;
 using PeachWallet.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -52,6 +54,7 @@ namespace PeachWallet.Services
                     await _connection.UpdateAsync<LancamentoRecorrente>(lancamentoRecorrente);
                 }
             }
+
         }
 
         public async Task<bool> AtualizarSaldoConta(Lancamento lancamento, ContaBancaria contaMov, ContaBancaria contaInvest, Configs configs, DateTime data, bool FaturaFechou = false)
@@ -86,6 +89,7 @@ namespace PeachWallet.Services
 
                 atualizado = true;
             }
+
             return atualizado;
         }
 
@@ -137,6 +141,41 @@ namespace PeachWallet.Services
 
         }
 
+        public async Task FecharSaldoMesPassado(DateTime? Data = null)
+        {
+            RelatorioRepository _relatorioRepository = new RelatorioRepository(_connection);
+            Configs configs = await _connection.GetAsync<Configs>();
+            ContaBancaria contaMov = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaMovimentacao);
+
+
+            var meses = await _relatorioRepository.GetMesesAbertos(Data ?? DateTime.Now);
+
+            if(meses.Count() > 0)
+            {
+                var ResumoMesAtual = await _relatorioRepository.GetResumoMes(Data.Value.Year, Data.Value.Month, configs.NrDiaFechamentoFatura);
+                ResumoMesAtual.ValorDisponivelTotal = contaMov.Saldo + ResumoMesAtual.EntradasPendentes - ResumoMesAtual.GastosPendentes - ResumoMesAtual.GastosCreditoPendentes - ResumoMesAtual.InvestimentoPendentes;
+                double ValorDispMesPassado = ResumoMesAtual.ValorDisponivelTotal + (ResumoMesAtual.ValorDisponivelMes * -1);
+
+                foreach (var mes in meses)
+                {
+                    var SaldoMes = await _connection.GetAsync<SaldoMes>(x=> x.Ano == mes.Ano && x.Mes == mes.Mes);
+                    if(SaldoMes is null)
+                    {
+                        var resumoMes = await _relatorioRepository.GetResumoMes(mes.Ano, mes.Mes, configs.NrDiaFechamentoFatura);
+                        await _connection.CreateAsync<SaldoMes>(new SaldoMes
+                        {
+                            Ano = mes.Ano,
+                            Mes = mes.Mes,
+                            Valor = ValorDispMesPassado
+                        });
+
+                        ValorDispMesPassado = ValorDispMesPassado + (resumoMes.ValorDisponivelMes * -1);
+
+
+                    }
+                }
+            }
+        }
     }
 
 }

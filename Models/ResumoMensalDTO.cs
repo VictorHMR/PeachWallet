@@ -11,6 +11,7 @@ namespace PeachWallet.Models
     public class ResumoMensalDTO
     {
         public string Mes { get; set; }
+        public int NrMes { get; set; }
         public double EntradasLiquidadas { get; set; }
         public double EntradasPendentes { get; set; }
         public double GastosLiquidados { get; set; }

@@ -112,7 +112,7 @@
                         Padding="10"
                         Grid.Column="1"
                         VerticalOptions="Center"
-                        Command="{Binding CriarLancamentoCommand}">
+                        Command="{Binding CriarLancamentoCommand}" IsEnabled="{Binding PodeEditar}">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Plus}" Color="{StaticResource Primary}" />
                     </ImageButton.Source>
@@ -127,7 +127,7 @@
                     <DataTemplate x:DataType="models:LancamentoDTO">
                         <Grid ColumnDefinitions="Auto,*,Auto, Auto" Padding="0,5" ColumnSpacing="10">
                             <Grid.GestureRecognizers>
-                                <TapGestureRecognizer
+                                <TapGestureRecognizer 
                                              Command="{Binding BindingContext.EditarLancamentoCommand, Source={x:Reference Root}}"
                                             CommandParameter="{Binding .}" />
                             </Grid.GestureRecognizers>

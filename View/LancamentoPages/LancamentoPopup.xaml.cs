@@ -34,6 +34,7 @@ public partial class LancamentoPopup
         inputForm.SubmitCommand = new Command(OnSubmitClicked);
 
         pkDataLancamento.Date = _dataInicial;
+        pkDataLancamento.MinimumDate = new DateTime(_dataInicial.Year, _dataInicial.Month, 1);
 
         if (_lancamento != null)
         {

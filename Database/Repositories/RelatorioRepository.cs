@@ -22,25 +22,50 @@ namespace PeachWallet.Database.Repositories
 
             List<ResumoMensalDTO> resumoAno = new List<ResumoMensalDTO>();
             double ValorDispMesPassado = 0;
-            for (int mes = 1; mes <= 12; mes++)
+
+            bool anoAFrente = Ano > DateTime.Now.Year;
+            int mesAtual = !anoAFrente ? DateTime.Now.Month : 1;
+            double Saldo = contaMov.Saldo;
+
+            if (anoAFrente)
+            {
+                var ResumoAnoAnterior = await GetResumoAno(Ano - 1);
+                Saldo = ResumoAnoAnterior.FirstOrDefault(x => x.NrMes == 12)!.ValorDisponivelTotal;
+            }
+            for (int mes = mesAtual; mes >= 1; mes--)
             {
                 var resumoMes = await GetResumoMes(Ano, mes, config.NrDiaFechamentoFatura);
 
-                if(mes == 1)
+                if (mes == mesAtual)
                 {
-                    resumoMes.ValorDisponivelTotal = contaMov.Saldo + resumoMes.EntradasPendentes - resumoMes.GastosPendentes - resumoMes.GastosCreditoPendentes - resumoMes.InvestimentoPendentes;
-
+                    resumoMes.ValorDisponivelTotal = Saldo + resumoMes.EntradasPendentes - resumoMes.GastosPendentes - resumoMes.GastosCreditoPendentes - resumoMes.InvestimentoPendentes;
                 }
                 else
                 {
-                    resumoMes.ValorDisponivelTotal = ValorDispMesPassado + resumoMes.ValorDisponivelMes;
+                    var SaldoMes = await _conn.GetAsync<SaldoMes>(x => x.Mes == mes && x.Ano == Ano);
+                    if(SaldoMes is not null)
+                        resumoMes.ValorDisponivelTotal = SaldoMes.Valor;
                 }
 
+                resumoAno.Add(resumoMes);
+            }
+
+            for (int mes = mesAtual; mes <= 12; mes++)
+            {
+                if(mes == mesAtual)
+                {
+                    ValorDispMesPassado = resumoAno.FirstOrDefault(x=> x.NrMes == mesAtual)!.ValorDisponivelTotal;
+                    continue;
+                }
+                
+                var resumoMes = await GetResumoMes(Ano, mes, config.NrDiaFechamentoFatura);
+                resumoMes.ValorDisponivelTotal = ValorDispMesPassado + resumoMes.ValorDisponivelMes;
+                
                 ValorDispMesPassado = resumoMes.ValorDisponivelTotal;
                 resumoAno.Add(resumoMes);
             }
 
-            return resumoAno;
+            return resumoAno.OrderBy(x=> x.NrMes).ToList();
         }
 
 
@@ -85,6 +110,7 @@ namespace PeachWallet.Database.Repositories
             var dto = resumo.FirstOrDefault() ?? new ResumoMensalDTO();
 
             dto.Mes = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Mes));
+            dto.NrMes = Mes;
             dto.ValorDisponivelMes = (dto.EntradasLiquidadas + dto.EntradasPendentes) - (dto.GastosLiquidados + dto.GastosPendentes + dto.GastosCreditoLiquidados + dto.GastosCreditoPendentes + dto.InvestimentoLiquidados + dto.InvestimentoPendentes);
             return dto;
         }
@@ -177,6 +203,39 @@ namespace PeachWallet.Database.Repositories
             ORDER BY Ano");
         }
 
+        public async Task<List<MesAnoLancamentoDTO>> GetMesesAbertos(DateTime data)
+        {
+            var result = await _conn.Connection.QueryAsync<MesAnoLancamentoDTO>(@"
+        SELECT 
+            CAST(strftime('%Y', datetime(((DtLancamento / 10000000) - 62135596800), 'unixepoch')) AS INTEGER) AS Ano,
+            CAST(strftime('%m', datetime(((DtLancamento / 10000000) - 62135596800), 'unixepoch')) AS INTEGER) AS Mes
+        FROM Lancamento l
+        WHERE 
+            (
+                CAST(strftime('%Y', datetime(((DtLancamento / 10000000) - 62135596800), 'unixepoch')) AS INTEGER) < ?
+                OR
+                (
+                    CAST(strftime('%Y', datetime(((DtLancamento / 10000000) - 62135596800), 'unixepoch')) AS INTEGER) = ?
+                    AND
+                    CAST(strftime('%m', datetime(((DtLancamento / 10000000) - 62135596800), 'unixepoch')) AS INTEGER) < ?
+                )
+            )
+            AND NOT EXISTS (
+                SELECT 1
+                FROM SaldoMes s
+                WHERE 
+                    s.Ano = CAST(strftime('%Y', datetime(((l.DtLancamento / 10000000) - 62135596800), 'unixepoch')) AS INTEGER)
+                    AND
+                    s.Mes = CAST(strftime('%m', datetime(((l.DtLancamento / 10000000) - 62135596800), 'unixepoch')) AS INTEGER)
+            )
+        GROUP BY 
+            strftime('%Y', datetime(((DtLancamento / 10000000) - 62135596800), 'unixepoch')),
+            strftime('%m', datetime(((DtLancamento / 10000000) - 62135596800), 'unixepoch'))
+        ORDER BY Ano, Mes DESC
+    ", data.Year, data.Year, data.Month);
+
+            return result.ToList();
+        }
 
         public class DiasComLancamentoDTO
         {

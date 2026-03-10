@@ -29,6 +29,9 @@ namespace PeachWallet.ViewModel
         public ObservableCollection<LancamentoDTO> Lancamentos { get; } = [];
 
         [ObservableProperty]
+        private bool podeEditar = true;
+
+        [ObservableProperty]
         private ObservableCollection<MesAnoLancamentoDTO> periodosDisponiveis = [];
 
         [ObservableProperty]
@@ -150,6 +153,8 @@ namespace PeachWallet.ViewModel
         [RelayCommand]
         public async Task CriarLancamentoAsync()
         {
+            if (!PodeEditar)
+                return;
             var diaHoje = DateTime.Now.Day;
             var ultimoDiaDoMes = DateTime.DaysInMonth(PeriodoSelecionado.Ano, PeriodoSelecionado.Mes);
 
@@ -214,6 +219,8 @@ namespace PeachWallet.ViewModel
         [RelayCommand]
         public async Task EditarLancamentoAsync(LancamentoDTO lancamento)
         {
+            if (!PodeEditar)
+                return;
             var dtLancamento = new DateTime(lancamento.DtLancamento.Year,
                                             lancamento.DtLancamento.Month,
                                             lancamento.DtLancamento.Day,
@@ -290,6 +297,8 @@ namespace PeachWallet.ViewModel
         [RelayCommand]
         public async Task RemoverLancamentoAsync(LancamentoDTO lancamento)
         {
+            if (!PodeEditar)
+                return;
             if (lancamento != null)
             {
                 if (lancamento.FlLiquidado)
@@ -454,19 +463,34 @@ namespace PeachWallet.ViewModel
 
                 SobrasPeriodo = resumo.ValorDisponivelMes;
                 if (PeriodoAtual)
+                {
                     DisponivelPeriodo = contaMov.Saldo + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
+                    PodeEditar = true;
+                }
                 else
                 {
-                    double SobrasMesesAnteriores = 0;
-                    foreach (var mes in PeriodosDisponiveis)
+                    var SaldoMes = await _connection.GetAsync<SaldoMes>(x => x.Mes == PeriodoSelecionado.Mes && x.Ano == PeriodoSelecionado.Ano);
+                    if(SaldoMes is null)
                     {
-                        if (mes.Ano < PeriodoSelecionado.Ano || (mes.Ano == PeriodoSelecionado.Ano && mes.Mes < PeriodoSelecionado.Mes))
+                        double SobrasMesesAnteriores = 0;
+                        foreach (var mes in PeriodosDisponiveis)
                         {
-                            ResumoMensalDTO resumoMesAnterior = await _relatorioRepository.GetResumoMes(mes.Ano, mes.Mes, configs.NrDiaFechamentoFatura);
-                            SobrasMesesAnteriores += resumoMesAnterior.EntradasPendentes - resumoMesAnterior.GastosPendentes - resumoMesAnterior.GastosCreditoPendentes - resumoMesAnterior.InvestimentoPendentes;
+                            if (mes.Ano < PeriodoSelecionado.Ano || (mes.Ano == PeriodoSelecionado.Ano && mes.Mes < PeriodoSelecionado.Mes))
+                            {
+                                ResumoMensalDTO resumoMesAnterior = await _relatorioRepository.GetResumoMes(mes.Ano, mes.Mes, configs.NrDiaFechamentoFatura);
+                                SobrasMesesAnteriores += resumoMesAnterior.EntradasPendentes - resumoMesAnterior.GastosPendentes - resumoMesAnterior.GastosCreditoPendentes - resumoMesAnterior.InvestimentoPendentes;
+                            }
                         }
+                        DisponivelPeriodo = contaMov.Saldo + SobrasMesesAnteriores + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
+                        PodeEditar = true;
                     }
-                    DisponivelPeriodo = contaMov.Saldo + SobrasMesesAnteriores + resumo.EntradasPendentes - resumo.GastosPendentes - resumo.GastosCreditoPendentes - resumo.InvestimentoPendentes;
+                    else
+                    {
+
+                        DisponivelPeriodo = SaldoMes.Valor;
+                        PodeEditar = false;
+                    }
+
                 }
             }
         }
