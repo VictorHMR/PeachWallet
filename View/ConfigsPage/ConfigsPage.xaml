@@ -8,7 +8,7 @@
              Title="Configurações">
 
     <ScrollView VerticalOptions="Start" Padding="15, 0" >
-        <Grid RowSpacing="5" RowDefinitions="Auto, Auto">
+        <Grid RowSpacing="5" RowDefinitions="Auto, Auto, Auto">
             <VerticalStackLayout Grid.Row="0">
                 <Label Text="Lançamentos" FontSize="22" Margin="0,10,0,5"  TextColor="{StaticResource Gray100}"/>
                 <material:PickerField 
@@ -20,7 +20,14 @@
                     Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.AngleDown}}" 
                     AllowClear="False"/>
             </VerticalStackLayout>
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*" ColumnSpacing="10" RowSpacing="10" Grid.Row="1" Margin="0,20">
+            <VerticalStackLayout Grid.Row="1">
+                <Label Text="Projeção" FontSize="22" Margin="0,10,0,5"  TextColor="{StaticResource Gray100}"/>
+                <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto">
+                    <Label Text="Somar Saldo Disponivel na projeção" FontSize="16" TextColor="{StaticResource Gray200}" VerticalOptions="Center" Grid.Column="0" Grid.Row="0" />
+                    <Switch x:Name="swtDeduzirDisp"  Grid.Column="1" Grid.Row="0" IsToggled="{Binding DeduzirDisp, Mode=TwoWay}" />
+                </Grid>
+            </VerticalStackLayout>
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*" ColumnSpacing="10" RowSpacing="10" Grid.Row="2" Margin="0,20">
                 <Label Grid.Row="0" Text="Banco de Dados" FontSize="22" TextColor="{StaticResource Gray100}"/>
                 <Button 
                     Text="Exportar" 

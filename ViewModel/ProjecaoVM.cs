@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Mopups.Services;
 using PeachWallet.Database;
 using PeachWallet.Database.Models;
+using PeachWallet.Database.Repositories;
 using PeachWallet.Models;
 using PeachWallet.Utils;
 using PeachWallet.View.SaldoPages;
@@ -27,7 +28,11 @@ namespace PeachWallet.ViewModel
         [ObservableProperty]
         private double saldoAtual = 0;
 
+        [ObservableProperty]
+        private double saldoAtualSemDisp = 0;
+
         private bool _dataCompleted;
+
 
         // =======================
         // Construtor
@@ -35,25 +40,33 @@ namespace PeachWallet.ViewModel
 
         public ProjecaoVM(LocalDbService connection)
         {
-            _connection = connection;
-        }
+            _connection = connection;        }
 
         [RelayCommand]
         public async Task GetProjecoesAsync()
         {
+            RelatorioRepository relatorioRepository = new RelatorioRepository(_connection);
+            Configs configs = await _connection.GetAsync<Configs>();
+
             if (_dataCompleted)
                 return;
 
-            var lstProjecoes = await _connection.SelectAsync<Projecao>();
+            var lstProjecoes = await _connection.SelectAsync<Projecao>(x=> x.Ano >= DateTime.Now.Year);
 
+            double SaldoDispAnoPassado = 0;
             foreach (var item in lstProjecoes)
             {
                 DateTime fimDoAno = new DateTime(item.Ano, 12, 31);
                 DateTime inicioDoAno = new DateTime(item.Ano, 1, 1);
                 Expression<Func<Lancamento, bool>> predicate = x => (x.DtLancamento <= fimDoAno && x.DtLancamento >= inicioDoAno && x.TipoLancamento == (int)TiposLancamento.Investimento && x.FlLiquidado);
 
-                double SaltoTotal = Projecoes.FirstOrDefault(x => x.Ano == item.Ano - 1)?.ValorTotal ?? SaldoAtual;
+
+                double SaldoDispFinalDoAno = (await relatorioRepository.GetResumoAno(item.Ano)).FirstOrDefault(x=> x.NrMes == 12)?.ValorDisponivelTotal ?? 0;
+
+                double SaldoAtual = SaldoDispFinalDoAno - SaldoDispAnoPassado;
+                double SaltoTotal = (Projecoes.FirstOrDefault(x => x.Ano == item.Ano - 1)?.ValorTotal ?? SaldoAtualSemDisp) + (configs.DeduzirDisp ? SaldoAtual : 0);
                 double investidoTotal = await _connection.SumValueAsync<Lancamento>(predicate, x => x.Valor);
+
                 Projecoes.Add(new ProjecaoDTO
                 {
                     IdProjecao = item.Id,
@@ -62,6 +75,8 @@ namespace PeachWallet.ViewModel
                     Investido = item.InvestidoMensal * 12,
                     ValorTotal = item.InvestidoMensal * 12 + SaltoTotal - investidoTotal
                 });
+
+                SaldoDispAnoPassado = SaldoDispFinalDoAno;
                 AtualizarUltimoItem();
             }
         }

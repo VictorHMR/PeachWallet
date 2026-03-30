@@ -17,6 +17,8 @@ namespace PeachWallet.ViewModel
         public ContaBancariaVM ContaBancariaVM { get; }
         public ProjecaoVM ProjecaoVM { get; }
         public double SaldoTotal => ContaBancariaVM.ContasBancarias.Sum(x => x.SaldoAtual);
+        public double SaldoTotalSemDisp => ContaBancariaVM.ContasBancarias.Where(x=> !x.ContaMovimentacao).Sum(x => x.SaldoAtual);
+
         private bool isLoading;
         public SaldoVM(LocalDbService _connection)
         {
@@ -37,6 +39,8 @@ namespace PeachWallet.ViewModel
                 conta.PropertyChanged += OnContaPropertyChanged;
             }
             ProjecaoVM.SaldoAtual = SaldoTotal;
+            ProjecaoVM.SaldoAtualSemDisp = SaldoTotalSemDisp;
+
             await ProjecaoVM.ReloadProjecoesAsync();
             isLoading = false;
         }

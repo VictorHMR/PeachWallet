@@ -78,8 +78,9 @@ namespace PeachWallet.ViewModel
             if (lstLancamentos.Count < _pageSize)
                 _dataCompleted = true;
 
-            foreach (var item in lstLancamentos)
+            foreach (var item in lstLancamentos.OrderByDescending(x=> x.DtLancamento))
             {
+                int parcPagas = (await _connection.SelectAsync<Lancamento>(x => x.IdLancamentoRecorrente == item.Id && x.FlLiquidado)).Count();
                 Lancamentos.Add(new LancamentoRecorrenteDTO
                 {
                     IdLancamentoRecorrente = item.Id,
@@ -89,7 +90,8 @@ namespace PeachWallet.ViewModel
                     TipoLancamento = (TiposLancamento)item.TipoLancamento,
                     CorTexto = LancamentoUtils.ObterCorTexto((TiposLancamento)item.TipoLancamento),
                     FlCredito = item.FlCredito,
-                    NrMeses = item.NrMeses
+                    NrMeses = item.NrMeses,
+                    DisplayText = item.Descricao + " " + parcPagas + "/" + item.NrMeses
                 });
             }
 
@@ -111,6 +113,8 @@ namespace PeachWallet.ViewModel
                     {
                         if (mode == PopupMode.Create && lancamentoRecorrente != null)
                         {
+                            int parcPagas = (await _connection.SelectAsync<Lancamento>(x => x.IdLancamentoRecorrente == lancamentoRecorrente.IdLancamentoRecorrente && x.FlLiquidado)).Count();
+
                             LancamentoRecorrente lancamentoRecorrenteDB = new LancamentoRecorrente
                             {
                                 Descricao = lancamentoRecorrente.Descricao,
@@ -123,6 +127,7 @@ namespace PeachWallet.ViewModel
 
                             lancamentoRecorrente.IdLancamentoRecorrente = await _connection.CreateAsync(lancamentoRecorrenteDB);
                             lancamentoRecorrente.CorTexto = LancamentoUtils.ObterCorTexto(lancamentoRecorrente.TipoLancamento);
+                            lancamentoRecorrente.DisplayText = lancamentoRecorrente.Descricao + " " + parcPagas + "/" + lancamentoRecorrente.NrMeses;
 
                             await CriarLancamentos(lancamentoRecorrente);
 
@@ -145,7 +150,7 @@ namespace PeachWallet.ViewModel
                     {
                         if (mode == PopupMode.Update && lancamentoRecorrente != null)
                         {
-
+                            int parcPagas = (await _connection.SelectAsync<Lancamento>(x => x.IdLancamentoRecorrente == lancamentoRecorrente.IdLancamentoRecorrente && x.FlLiquidado)).Count();
                             var lstLancamentos = await _connection.SelectAsync<Lancamento>(x => x.IdLancamentoRecorrente == lancamentoRecorrente.IdLancamentoRecorrente && !x.FlLiquidado);
                             foreach (var lancamento in lstLancamentos)
                                 await _connection.DeleteAsync<Lancamento>(lancamento.Id);
@@ -162,6 +167,7 @@ namespace PeachWallet.ViewModel
                             });
 
                             lancamentoRecorrente.CorTexto = LancamentoUtils.ObterCorTexto(lancamentoRecorrente.TipoLancamento);
+                            lancamentoRecorrente.DisplayText = lancamentoRecorrente.Descricao + " " + parcPagas + "/" + lancamentoRecorrente.NrMeses;
 
                             await CriarLancamentos(lancamentoRecorrente);
 

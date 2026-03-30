@@ -17,6 +17,8 @@ namespace PeachWallet.ViewModel
         [ObservableProperty]
         private int diaFechamentoFatura;
 
+        [ObservableProperty]
+        private bool deduzirDisp;
         public ConfigsVM(LocalDbService connection)
         {
             _connection = connection;
@@ -48,7 +50,7 @@ namespace PeachWallet.ViewModel
             var config = await _connection.GetAsync<Configs>();
 
             DiaFechamentoFatura = config.NrDiaFechamentoFatura ?? 1;
-
+            DeduzirDisp = config.DeduzirDisp;
             _isLoading = false;
         }
 
@@ -61,6 +63,14 @@ namespace PeachWallet.ViewModel
             _ = SaveDiaFechamentoAsync(value);
         }
 
+        partial void OnDeduzirDispChanged(bool value)
+        {
+            if (_isLoading)
+                return;
+
+            _ = SaveDeduzirDispAsync(value);
+        }
+
         private async Task SaveDiaFechamentoAsync(int dia)
         {
             var config = await _connection.GetAsync<Configs>();
@@ -69,6 +79,17 @@ namespace PeachWallet.ViewModel
                 return;
 
             config.NrDiaFechamentoFatura = dia;
+            await _connection.UpdateAsync(config);
+        }
+
+        private async Task SaveDeduzirDispAsync(bool value)
+        {
+            var config = await _connection.GetAsync<Configs>();
+
+            if (config.DeduzirDisp == value)
+                return;
+
+            config.DeduzirDisp = value;
             await _connection.UpdateAsync(config);
         }
     }

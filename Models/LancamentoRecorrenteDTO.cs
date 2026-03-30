@@ -16,6 +16,8 @@ namespace PeachWallet.Models
         [ObservableProperty]
         private string descricao;
         [ObservableProperty]
+        private string displayText;
+        [ObservableProperty]
         private double valor;
         [ObservableProperty]
         private TiposLancamento tipoLancamento;

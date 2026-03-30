@@ -125,7 +125,7 @@
                             </Border>
 
                             <Grid Grid.Column="1" RowSpacing="2" VerticalOptions="Center" RowDefinitions="*,*">
-                                <Label Text="{Binding Descricao}"
+                                <Label Text="{Binding DisplayText}"
                                                FontSize="16"
                                                FontAttributes="Bold" 
                                                TextColor="{StaticResource White}" Grid.Row="0" />
