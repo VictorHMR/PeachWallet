@@ -20,6 +20,8 @@ namespace PeachWallet.Models
         public double GastosCreditoPendentes { get; set; }
         public double InvestimentoLiquidados { get; set; }
         public double InvestimentoPendentes { get; set; }
+        public double Saida_ReservaLiquidados { get; set; }
+        public double Saida_ReservaPendentes { get; set; }
 
         public double ValorDisponivelMes { get; set; }
         public double ValorDisponivelTotal { get; set; }

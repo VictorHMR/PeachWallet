@@ -38,7 +38,7 @@ namespace PeachWallet.Database.Repositories
 
                 if (mes == mesAtual)
                 {
-                    resumoMes.ValorDisponivelTotal = Saldo + resumoMes.EntradasPendentes - resumoMes.GastosPendentes - resumoMes.GastosCreditoPendentes - resumoMes.InvestimentoPendentes;
+                    resumoMes.ValorDisponivelTotal = Saldo + resumoMes.EntradasPendentes - resumoMes.GastosPendentes - resumoMes.GastosCreditoPendentes - resumoMes.InvestimentoPendentes - resumoMes.Saida_ReservaPendentes;
                 }
                 else
                 {
@@ -59,7 +59,7 @@ namespace PeachWallet.Database.Repositories
                 }
                 
                 var resumoMes = await GetResumoMes(Ano, mes, config.NrDiaFechamentoFatura);
-                resumoMes.ValorDisponivelTotal = ValorDispMesPassado + resumoMes.ValorDisponivelMes;
+                resumoMes.ValorDisponivelTotal = ValorDispMesPassado + resumoMes.ValorDisponivelMes - resumoMes.Saida_ReservaPendentes;
                 
                 ValorDispMesPassado = resumoMes.ValorDisponivelTotal;
                 resumoAno.Add(resumoMes);
@@ -90,7 +90,10 @@ namespace PeachWallet.Database.Repositories
                 SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Saida + @" AND FlLiquidado = 0 AND FlCredito = 1) THEN Valor ELSE 0 END) as GastosCreditoPendentes,
             
                 SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Investimento + @" AND FlLiquidado = 1) THEN Valor ELSE 0 END) as InvestimentoLiquidados,
-                SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Investimento + @" AND FlLiquidado = 0) THEN Valor ELSE 0 END) as InvestimentoPendentes
+                SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Investimento + @" AND FlLiquidado = 0) THEN Valor ELSE 0 END) as InvestimentoPendentes,
+
+                SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Saida_Reserva + @" AND FlLiquidado = 1) THEN Valor ELSE 0 END) as Saida_ReservaLiquidados,
+                SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Saida_Reserva + @" AND FlLiquidado = 0) THEN Valor ELSE 0 END) as Saida_ReservaPendentes
             FROM Lancamento
             WHERE
             (
@@ -137,7 +140,10 @@ namespace PeachWallet.Database.Repositories
                 SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Saida + @" AND FlLiquidado = 0 AND FlCredito = 1) THEN Valor ELSE 0 END) as GastosCreditoPendentes,
             
                 SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Investimento + @" AND FlLiquidado = 1) THEN Valor ELSE 0 END) as InvestimentoLiquidados,
-                SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Investimento + @" AND FlLiquidado = 0) THEN Valor ELSE 0 END) as InvestimentoPendentes
+                SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Investimento + @" AND FlLiquidado = 0) THEN Valor ELSE 0 END) as InvestimentoPendentes,
+
+                SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Saida_Reserva + @" AND FlLiquidado = 1) THEN Valor ELSE 0 END) as Saida_ReservaLiquidados,
+                SUM(CASE WHEN (TipoLancamento = " + (int)TiposLancamento.Saida_Reserva + @" AND FlLiquidado = 0) THEN Valor ELSE 0 END) as Saida_ReservaPendentes
             FROM Lancamento
             WHERE
             (

@@ -41,12 +41,12 @@
 
                         <Label Grid.Column="1"
                                Text="Recebido"
-                               TextColor="{StaticResource Gray300}"
+                               TextColor="{StaticResource Positive}"
                                HorizontalTextAlignment="End"/>
 
                         <Label Grid.Column="2"
                                Text="Investido"
-                               TextColor="{StaticResource Gray300}"
+                               TextColor="{StaticResource Investment}"
                                HorizontalTextAlignment="End"/>
 
                         <Label Grid.Column="3"
@@ -154,6 +154,7 @@
                         <Label Grid.Column="5" FontAutoScalingEnabled="True"
                                Text="{Binding RelatorioTotal.ValorDisponivelTotal, StringFormat='{0:N0}'}"
                                TextColor="{Binding RelatorioTotal.CorTextoTotal}"
+                               FontAttributes="Bold"
                                HorizontalTextAlignment="End"/>
                     </Grid>
                 </VerticalStackLayout>
