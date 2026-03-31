@@ -29,6 +29,8 @@ namespace PeachWallet.Models
         private Color corTexto;
         [ObservableProperty]
         private bool flCredito;
+        [ObservableProperty]
+        public string displayPeriodoLancamento;
 
         public string IconeLancamento
         {
@@ -74,5 +76,7 @@ namespace PeachWallet.Models
                 return FlCredito ? "Crédito" : "Débito";
             }
         }
+
+        
     }
 }

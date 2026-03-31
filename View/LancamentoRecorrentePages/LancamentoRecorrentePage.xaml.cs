@@ -8,10 +8,10 @@ public partial class LancamentoRecorrentePage : ContentPage
 {
     private LancamentoRecorrenteVM _viewModel;
 
-    public LancamentoRecorrentePage(LocalDbService connection, LiquidacaoService liquidacaoService)
+    public LancamentoRecorrentePage(LocalDbService connection)
     {
         InitializeComponent();
-        _viewModel = new LancamentoRecorrenteVM(connection, liquidacaoService);
+        _viewModel = new LancamentoRecorrenteVM(connection);
         BindingContext = _viewModel;
     }
 

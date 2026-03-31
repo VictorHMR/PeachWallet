@@ -23,8 +23,19 @@
             <VerticalStackLayout Grid.Row="1">
                 <Label Text="Projeção" FontSize="22" Margin="0,10,0,5"  TextColor="{StaticResource Gray100}"/>
                 <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto">
-                    <Label Text="Somar Saldo Disponivel na projeção" FontSize="16" TextColor="{StaticResource Gray200}" VerticalOptions="Center" Grid.Column="0" Grid.Row="0" />
-                    <Switch x:Name="swtDeduzirDisp"  Grid.Column="1" Grid.Row="0" IsToggled="{Binding DeduzirDisp, Mode=TwoWay}" />
+                    <Label Text="Tipo de Dedução Saldo Disponivel" FontSize="16" TextColor="{StaticResource Gray200}" VerticalOptions="Center" Grid.Column="0" Grid.Row="0" />
+                    <material:PickerField 
+                        x:Name="dpdTipoDeducaoSaldoDisp"
+                        Title=""
+                        WidthRequest="150"
+                        FontSize="16"
+                        TitleFontSize="16"
+                        ItemDisplayBinding="{Binding Display}"
+                        ItemsSource="{Binding TiposDeducao}"
+                        SelectedValueChangedCommand="{Binding DeduzirDispCommand, Mode=TwoWay}"
+                        Icon="{FontImageSource FontFamily=FASolid, Glyph={x:Static fa:Solid.AngleDown}}" 
+                        AllowClear="False"
+                        Grid.Column="1" Grid.Row="0"/>
                 </Grid>
             </VerticalStackLayout>
             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*" ColumnSpacing="10" RowSpacing="10" Grid.Row="2" Margin="0,20">

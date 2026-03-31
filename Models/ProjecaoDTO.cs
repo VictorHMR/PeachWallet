@@ -10,8 +10,6 @@ namespace PeachWallet.Models
     public partial class ProjecaoDTO: ObservableObject
     {
         [ObservableProperty]
-        public int idProjecao;
-        [ObservableProperty]
         public int ano;
         [ObservableProperty]
         public double investidoMensal;

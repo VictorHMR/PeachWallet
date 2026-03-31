@@ -16,4 +16,11 @@ namespace PeachWallet.Utils
 
 
     }
+
+    public enum TipoDeducaoSaldoDisp
+    {
+        Nao_Deduzir=0,
+        Ano_Atual=1,
+        Todos_Anos= 2
+    }
 }

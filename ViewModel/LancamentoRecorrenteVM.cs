@@ -15,6 +15,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using UraniumUI.Extensions;
 
 namespace PeachWallet.ViewModel
 {
@@ -22,11 +23,16 @@ namespace PeachWallet.ViewModel
     {
         private readonly LocalDbService _connection;
 
-        private readonly RelatorioRepository _relatorioRepository;
+        public ObservableCollection<LancamentoRecorrenteDTO> LancamentosVisiveis { get; } = [];
 
-        private readonly LiquidacaoService _liquidacaoService;
+        public ObservableCollection<LancamentoRecorrenteDTO> Lancamentos{ get; } = [];
 
-        public ObservableCollection<LancamentoRecorrenteDTO> Lancamentos { get; } = [];
+
+        [ObservableProperty]
+        private ObservableCollection<int> anos = [];
+
+        [ObservableProperty]
+        private int? anoSelecionado;
 
         [ObservableProperty]
         private double gastosPeriodo;
@@ -45,11 +51,9 @@ namespace PeachWallet.ViewModel
         ContaBancaria contaMov;
         Configs configs;
         ContaBancaria contaInvest;
-        public LancamentoRecorrenteVM(LocalDbService connection, LiquidacaoService liquidacaoService)
+        public LancamentoRecorrenteVM(LocalDbService connection)
         {
             _connection = connection;
-            _liquidacaoService = liquidacaoService;
-            _relatorioRepository = new RelatorioRepository(_connection);
         }
 
         public async Task InitializeVMAsync()
@@ -60,8 +64,10 @@ namespace PeachWallet.ViewModel
             if (configs.IdContaInvestimento is not null)
                 contaInvest = await _connection.GetAsync<ContaBancaria>(x => x.Id == configs.IdContaInvestimento);
 
+            AnoSelecionado = DateTime.Now.Year;
             await ReloadLancamentoRecorrenteAsync();
             await LoadRelatorio();
+            Anos = new ObservableCollection<int>(Lancamentos.OrderBy(x => x.DtLancamento).Select(x => x.DtLancamento.Year).Distinct());
         }
 
         #region COMMANDS
@@ -91,10 +97,11 @@ namespace PeachWallet.ViewModel
                     CorTexto = LancamentoUtils.ObterCorTexto((TiposLancamento)item.TipoLancamento),
                     FlCredito = item.FlCredito,
                     NrMeses = item.NrMeses,
-                    DisplayText = item.Descricao + " " + parcPagas + "/" + item.NrMeses
+                    DisplayText = item.Descricao + " " + parcPagas + "/" + item.NrMeses,
+                    DisplayPeriodoLancamento = item.DtLancamento.ToString("dd/MM/yyyy") + " a " + item.DtLancamento.AddMonths((item.NrMeses ?? 1) - 1).ToString("dd/MM/yyyy")
                 });
             }
-
+            FiltrarLancamentoRecorrente();
         }
 
         [RelayCommand]
@@ -128,14 +135,17 @@ namespace PeachWallet.ViewModel
                             lancamentoRecorrente.IdLancamentoRecorrente = await _connection.CreateAsync(lancamentoRecorrenteDB);
                             lancamentoRecorrente.CorTexto = LancamentoUtils.ObterCorTexto(lancamentoRecorrente.TipoLancamento);
                             lancamentoRecorrente.DisplayText = lancamentoRecorrente.Descricao + " " + parcPagas + "/" + lancamentoRecorrente.NrMeses;
+                            lancamentoRecorrente.DisplayPeriodoLancamento = lancamentoRecorrente.DtLancamento.ToString("dd/MM/yyyy") + " a " + lancamentoRecorrente.DtLancamento.AddMonths((lancamentoRecorrente.NrMeses ?? 1) - 1).ToString("dd/MM/yyyy");
+
 
                             await CriarLancamentos(lancamentoRecorrente);
 
                             var index = Lancamentos.TakeWhile(x => x.DtLancamento > lancamentoRecorrente.DtLancamento).Count();
 
                             Lancamentos.Insert(index, lancamentoRecorrente);
+                            FiltrarLancamentoRecorrente();
                             await LoadRelatorio();
-                            
+
                         }
 
                     })
@@ -168,6 +178,7 @@ namespace PeachWallet.ViewModel
 
                             lancamentoRecorrente.CorTexto = LancamentoUtils.ObterCorTexto(lancamentoRecorrente.TipoLancamento);
                             lancamentoRecorrente.DisplayText = lancamentoRecorrente.Descricao + " " + parcPagas + "/" + lancamentoRecorrente.NrMeses;
+                            lancamentoRecorrente.DisplayPeriodoLancamento = lancamentoRecorrente.DtLancamento.ToString("dd/MM/yyyy") + " a " + lancamentoRecorrente.DtLancamento.AddMonths((lancamentoRecorrente.NrMeses ?? 1) - 1).ToString("dd/MM/yyyy");
 
                             await CriarLancamentos(lancamentoRecorrente);
 
@@ -183,23 +194,15 @@ namespace PeachWallet.ViewModel
 
                         }
 
-                    }, lancamentoRecorrente)
+                    }, async dto => await RemoverLancamentoRecorrenteAsync(dto), lancamentoRecorrente)
             );
-
+            FiltrarLancamentoRecorrente();
+            await LoadRelatorio();
         }
 
         [RelayCommand]
         public async Task RemoverLancamentoRecorrenteAsync(LancamentoRecorrenteDTO lancamentoRecorrente)
         {
-            bool confirmar = await Application.Current.MainPage.DisplayAlert(
-                "Excluir lançamento mensal",
-                "Tem certeza que deseja excluir este lançamento? Essa operação irá excluir todos os futuros lançamentos relacionados e este lançamento mensal",
-                "Excluir",
-                "Cancelar"
-            );
-            if (!confirmar)
-                return;
-
             var lstLancamentos = await _connection.SelectAsync<Lancamento>(x => x.IdLancamentoRecorrente == lancamentoRecorrente.IdLancamentoRecorrente && !x.FlLiquidado);
 
             foreach (var lancamento in lstLancamentos)
@@ -211,9 +214,19 @@ namespace PeachWallet.ViewModel
             if (item != null)
                 Lancamentos.Remove(item);
 
+            FiltrarLancamentoRecorrente();
             await LoadRelatorio();
         }
 
+        [RelayCommand]
+        private async Task AnoSelecionadoAsync(int ano)
+        {
+            if (ano == null)
+                return;
+
+            FiltrarLancamentoRecorrente();
+            await LoadRelatorio();
+        }
         #endregion
 
         #region HELPERS 
@@ -231,29 +244,45 @@ namespace PeachWallet.ViewModel
             for (int i = 0; i < nrMesesAFrente; i++)
             {
                 var dataLancamento = dataBase.AddMonths(i);
+                DateTime dtIni = new DateTime(dataLancamento.Year, dataLancamento.Month, 1);
+                DateTime dtfim = dtIni.AddMonths(1);
+                bool possuiLancamento = (await _connection.SelectAsync<Lancamento>(x => x.IdLancamentoRecorrente == lancamentoRecorrente.IdLancamentoRecorrente && x.DtLancamento >= dtIni && x.DtLancamento < dtfim)).Any();
 
-                var lancamentoDB = new Lancamento
+                if (!possuiLancamento && dtfim > DateTime.Now.Date)
                 {
-                    Descricao = lancamentoRecorrente.Descricao + $" {i + 1}/{nrMesesAFrente}",
-                    DtLancamento = dataLancamento,
-                    TipoLancamento = (int)lancamentoRecorrente.TipoLancamento,
-                    Valor = lancamentoRecorrente.Valor,
-                    IdLancamentoRecorrente = lancamentoRecorrente.IdLancamentoRecorrente,
-                    FlCredito = lancamentoRecorrente.FlCredito,
-                };
+                    var lancamentoDB = new Lancamento
+                    {
+                        Descricao = lancamentoRecorrente.Descricao + $" {i + 1}/{nrMesesAFrente}",
+                        DtLancamento = dataLancamento,
+                        TipoLancamento = (int)lancamentoRecorrente.TipoLancamento,
+                        Valor = lancamentoRecorrente.Valor,
+                        IdLancamentoRecorrente = lancamentoRecorrente.IdLancamentoRecorrente,
+                        FlCredito = lancamentoRecorrente.FlCredito,
+                    };
+                    await _connection.CreateAsync(lancamentoDB);
+                }
 
-                await _connection.CreateAsync(lancamentoDB);
             }
         }
 
         public async Task LoadRelatorio()
         {
-            GastosPeriodo = await _connection.SumValueAsync<LancamentoRecorrente>(x => x.TipoLancamento == (int)TiposLancamento.Saida && !x.FlCredito, x => x.Valor);
-            GastosCreditoPeriodo = await _connection.SumValueAsync<LancamentoRecorrente>(x => x.TipoLancamento == (int)TiposLancamento.Saida && x.FlCredito, x => x.Valor);
-            EntradasPeriodo = await _connection.SumValueAsync<LancamentoRecorrente>(x => x.TipoLancamento == (int)TiposLancamento.Entrada , x => x.Valor);
-            InvestidoPeriodo = await _connection.SumValueAsync<LancamentoRecorrente>(x => x.TipoLancamento == (int)TiposLancamento.Investimento , x => x.Valor);
+            GastosPeriodo = LancamentosVisiveis.Where(x => x.TipoLancamento == TiposLancamento.Saida && !x.FlCredito).Sum(x=> x.Valor);
+            GastosCreditoPeriodo = LancamentosVisiveis.Where(x => x.TipoLancamento == TiposLancamento.Saida && x.FlCredito).Sum(x=> x.Valor);
+            EntradasPeriodo = LancamentosVisiveis.Where(x => x.TipoLancamento == TiposLancamento.Entrada).Sum(x=> x.Valor);
+            InvestidoPeriodo = LancamentosVisiveis.Where(x => x.TipoLancamento == TiposLancamento.Investimento).Sum(x=> x.Valor);
 
             DisponivelPeriodo = EntradasPeriodo - (GastosPeriodo + GastosCreditoPeriodo + InvestidoPeriodo);
+        }
+
+        public void FiltrarLancamentoRecorrente()
+        {
+            LancamentosVisiveis.Clear();
+            var lstLancamentosAno = Lancamentos.Where(x => (x.DtLancamento.Year >= AnoSelecionado && x.DtLancamento.Year <= AnoSelecionado) || (x.DtLancamento.AddMonths((x.NrMeses ?? 1) - 1).Year >= AnoSelecionado && x.DtLancamento.AddMonths((x.NrMeses ?? 1) - 1).Year <= AnoSelecionado)).ToList();
+            foreach (var item in lstLancamentosAno)
+                LancamentosVisiveis.Add(item);
+
+            Anos = new ObservableCollection<int>(Lancamentos.OrderBy(x => x.DtLancamento).Select(x => x.DtLancamento.Year).Distinct());
         }
 
         #endregion

@@ -13,6 +13,13 @@
     <Grid RowDefinitions="Auto,*">
 
         <VerticalStackLayout Padding="20" Spacing="20" Grid.Row="0">
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
+                <components:MonthPickerField WidthRequest="150"
+                    ItemsSource="{Binding Anos}"
+                    SelectedItem="{Binding AnoSelecionado}"
+                    SelectionChangedCommand="{Binding AnoSelecionadoCommand}" 
+                    HasIcon="True"/>
+            </HorizontalStackLayout>
             <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
                 <Border Grid.Row="0" Grid.Column="0" HeightRequest="75"
                         BackgroundColor="{StaticResource NegativeDark}"
@@ -104,13 +111,18 @@
             </Grid>
 
             <CollectionView x:Name="lsvLancamentos" Grid.Row="1"
-                      ItemsSource="{Binding Lancamentos}"
+                      ItemsSource="{Binding LancamentosVisiveis}"
                       RemainingItemsThreshold="20"
                       VerticalScrollBarVisibility="Always" VerticalOptions="FillAndExpand"
                       SelectionMode="None">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:LancamentoRecorrenteDTO">
-                        <Grid ColumnDefinitions="Auto,*,Auto, Auto" Padding="0,5" ColumnSpacing="10">
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="0,5" ColumnSpacing="10">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                             Command="{Binding BindingContext.AtualizarLancamentoRecorrenteCommand, Source={x:Reference Root}}"
+                                            CommandParameter="{Binding .}" />
+                            </Grid.GestureRecognizers>
                             <Border WidthRequest="45"
                                             HeightRequest="45"
                                             BackgroundColor="{Binding CorTexto}"
@@ -129,7 +141,7 @@
                                                FontSize="16"
                                                FontAttributes="Bold" 
                                                TextColor="{StaticResource White}" Grid.Row="0" />
-                                <Label Text="{Binding DtLancamento, StringFormat='{0:dd/MM/yyyy HH:mm}'}" FontSize="14" Grid.Row="1" />
+                                <Label Text="{Binding DisplayPeriodoLancamento}" FontSize="14" Grid.Row="1" />
                             </Grid>
 
                             <Grid RowDefinitions="*,*" Grid.Column="2">
@@ -144,30 +156,6 @@
                                             TextColor="{StaticResource Gray100}" 
                                             FontSize="12" 
                                             HorizontalOptions="End"/>
-                            </Grid>
-
-                            <Grid Grid.Column="3"
-                                          VerticalOptions="Center"
-                                          HorizontalOptions="Center"
-                                          HeightRequest="25"
-                                          WidthRequest="70"
-                                          ColumnDefinitions="*, *"
-                                          ColumnSpacing="0">
-                                <ImageButton Grid.Column="0" Margin="0"
-                                            BackgroundColor="Transparent"
-                                            Command="{Binding BindingContext.AtualizarLancamentoRecorrenteCommand, Source={x:Reference Root}}"
-                                            CommandParameter="{Binding .}">
-                                    <ImageButton.Source>
-                                        <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Pen}" Color="{StaticResource White}" />
-                                    </ImageButton.Source>
-                                </ImageButton>
-                                <ImageButton Grid.Column="1"
-                                            Command="{Binding BindingContext.RemoverLancamentoRecorrenteCommand, Source={x:Reference Root}}"
-                                            CommandParameter="{Binding .}">
-                                    <ImageButton.Source>
-                                        <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.TrashCan}" Color="{StaticResource White}" />
-                                    </ImageButton.Source>
-                                </ImageButton>
                             </Grid>
                         </Grid>
                     </DataTemplate>

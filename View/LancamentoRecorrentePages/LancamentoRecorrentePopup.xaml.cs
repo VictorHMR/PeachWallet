@@ -10,14 +10,16 @@ namespace PeachWallet.View;
 public partial class LancamentoRecorrentePopup
 {
     private readonly Action<LancamentoRecorrenteDTO?, PopupMode> _onSubmit;
+    private readonly Func<LancamentoRecorrenteDTO, Task>? _onDelete;
     private readonly PopupMode _mode;
     private readonly LancamentoRecorrenteDTO? _lancamento;
 
-    public LancamentoRecorrentePopup(PopupMode mode, Action<LancamentoRecorrenteDTO?, PopupMode> onSubmit, LancamentoRecorrenteDTO? lancamento = null)
+    public LancamentoRecorrentePopup(PopupMode mode, Action<LancamentoRecorrenteDTO?, PopupMode> onSubmit, Func<LancamentoRecorrenteDTO, Task>? onDelete = null, LancamentoRecorrenteDTO ? lancamento = null)
     {
         InitializeComponent();
         _mode = mode;
         _onSubmit = onSubmit;
+        _onDelete = onDelete;
         _lancamento = lancamento;
 
         dpdTipoLancamento.ItemsSource = Enum.GetValues(typeof(TiposLancamento))
@@ -29,10 +31,9 @@ public partial class LancamentoRecorrentePopup
 
         inputForm.SubmitCommand = new Command(OnSubmitClicked);
 
-
         if (_lancamento != null)
         {
-            TitleLabel.Text = "Editar Lançamento Mensal";
+            TitleLabel.Text = "Lançamento Mensal";
             btnSubmit.Text = "Salvar";
             txtDescricao.Text = _lancamento.Descricao;
             txtValor.Text = _lancamento.Valor.ToString("N2");
@@ -41,6 +42,7 @@ public partial class LancamentoRecorrentePopup
             pkDataLancamento.Date = _lancamento.DtLancamento;
             swtCred.IsToggled = _lancamento.FlCredito;
             txtQtdMeses.Text = _lancamento.NrMeses?.ToString();
+            btnDelete.IsVisible = true;
         }
     }
 
@@ -74,6 +76,21 @@ public partial class LancamentoRecorrentePopup
 
         _onSubmit?.Invoke(dto, _mode);
         MopupService.Instance.PopAsync();
+    }
+
+    public async void OnDeleteClicked(object sender, EventArgs e)
+    {
+        bool confirmar = await Application.Current.MainPage.DisplayAlert(
+            "Excluir lançamento mensal",
+            "Tem certeza que deseja excluir este lançamento? Essa operação irá excluir todos os futuros lançamentos relacionados e este lançamento mensal",
+            "Excluir",
+            "Cancelar"
+        );
+        if (!confirmar)
+            return;
+
+        await _onDelete.Invoke(_lancamento);
+        await MopupService.Instance.PopAsync();
     }
 
     private void dpdTipoLanc_SelectedItemChanged(object sender, object e)

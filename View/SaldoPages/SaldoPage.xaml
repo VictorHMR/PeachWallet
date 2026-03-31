@@ -146,7 +146,7 @@
 
 
                     <!-- CABEÇALHO -->
-                    <Grid ColumnDefinitions="1.5*,3.25*,3.25*, 2*" Padding="16, 8, 0, 0">
+                    <Grid ColumnDefinitions="2*,4*,4*" Padding="16, 8, 0, 0">
                         <Label Text="Ano" TextColor="{StaticResource Gray400}" FontSize="16" />
                         <Label Grid.Column="1" Text="Investido(R$)" TextColor="{StaticResource Gray400}" FontSize="16"  />
                         <Label Grid.Column="2" Text="Saldo Total(R$)" TextColor="{StaticResource Gray400}" FontSize="16"  />
@@ -166,7 +166,7 @@
                                         Padding="16, 0, 16, 0"
                                         Margin="0,10">
 
-                                        <Grid ColumnDefinitions="1.5*,3.25*,3.25*, 2*" 
+                                        <Grid ColumnDefinitions="2*,4*,4*"
                                           VerticalOptions="Center">
 
                                             <Label Grid.Column="0"
@@ -187,39 +187,6 @@
                                                FontSize="15"
                                                Margin="10,0"/>
 
-                                            <!-- ÍCONES -->
-                                            <HorizontalStackLayout Grid.Column="3" Spacing="20">
-                                                <ImageButton MaximumWidthRequest="18" MaximumHeightRequest="18"
-                                                             Command="{Binding BindingContext.ProjecaoVM.EditarProjecaoCommand,
-                                                            Source={x:Reference SaldoPageRef}}"
-                                                             CommandParameter="{Binding .}">
-
-                                                    <ImageButton.Source>
-                                                        <FontImageSource
-                                                            FontFamily="FASolid"
-                                                            Glyph="{x:Static fa:Solid.Pen}"
-                                                            Color="{StaticResource White}" />
-                                                    </ImageButton.Source>
-                                                </ImageButton>
-
-                                                <Image WidthRequest="18"
-                                                       HeightRequest="18"
-                                                       IsVisible="{Binding PodeDeletar}">
-                                                    <Image.Source>
-                                                        <FontImageSource
-                                                            FontFamily="FASolid"
-                                                            Glyph="{x:Static fa:Solid.TrashCan}"
-                                                            Color="{StaticResource White}" />
-                                                    </Image.Source>
-                                                    <Image.GestureRecognizers>
-                                                        <TapGestureRecognizer
-                                                            Command="{Binding BindingContext.ProjecaoVM.RemoverProjecaoCommand,
-                                                            Source={x:Reference SaldoPageRef}}"
-                                                            CommandParameter="{Binding .}" />
-                                                    </Image.GestureRecognizers>
-                                                </Image>
-                                            </HorizontalStackLayout>
-
                                         </Grid>
                                     </Border>
                                     <BoxView StyleClass="Divider" Margin="0" />
@@ -228,14 +195,6 @@
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
-
-                    <Button Text="+ Mais um ano"
-                            BackgroundColor="{StaticResource Gray700}"
-                            TextColor="{StaticResource Gray300}"
-                            CornerRadius="6"
-                            Padding="0, 12"
-                            Command="{Binding BindingContext.ProjecaoVM.CriarProjecaoCommand,
-                            Source={x:Reference SaldoPageRef}}"/>
                 </VerticalStackLayout>
             </Border>
 

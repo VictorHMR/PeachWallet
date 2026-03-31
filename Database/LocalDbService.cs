@@ -88,7 +88,6 @@ namespace PeachWallet.Database
         {
             await _connection.CreateTableAsync<Lancamento>();
             await _connection.CreateTableAsync<ContaBancaria>();
-            await _connection.CreateTableAsync<Projecao>();
             await _connection.CreateTableAsync<LancamentoRecorrente>();
             await _connection.CreateTableAsync<SaldoMes>();
         }

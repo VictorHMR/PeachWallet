@@ -33,7 +33,32 @@
                            FontAttributes="Bold"
                            Padding="20,10"
                            VerticalOptions="Center" />
+
                 </Grid>
+
+                <Border x:Name="btnDelete" IsVisible="False" HorizontalOptions="End"
+                        Grid.Column="1"
+                        BackgroundColor="Transparent"
+                        StrokeThickness="0"
+                        Padding="20,10"
+                        VerticalOptions="Center">
+
+                    <Image WidthRequest="30"
+                           HeightRequest="30"
+                           Aspect="AspectFit">
+
+                        <Image.Source>
+                            <FontImageSource
+                                FontFamily="FASolid"
+                                Glyph="{x:Static fa:Solid.TrashCan}"
+                                Color="{StaticResource White}" />
+                        </Image.Source>
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnDeleteClicked" />
+                        </Image.GestureRecognizers>
+
+                    </Image>
+                </Border>
 
                 <BoxView StyleClass="Divider" Grid.Row="1" Margin="0"  Color="{StaticResource Gray300}" />
                 <!-- FORM -->
@@ -57,7 +82,7 @@
                                     <validation:RequiredValidation Message="Digite um valor!" />
                                 </material:TextField>
                                 <material:DatePickerField 
-                                    Title="Data" 
+                                    Title="Data Inicial" 
                                     x:Name="pkDataLancamento" 
                                     Grid.Column="1" 
                                     Format="dd/MM/yy" 

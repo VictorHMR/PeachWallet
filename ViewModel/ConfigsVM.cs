@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using PeachWallet.Database;
 using PeachWallet.Database.Models;
+using PeachWallet.Utils;
 using System.Collections.ObjectModel;
 
 namespace PeachWallet.ViewModel
@@ -18,7 +19,7 @@ namespace PeachWallet.ViewModel
         private int diaFechamentoFatura;
 
         [ObservableProperty]
-        private bool deduzirDisp;
+        private TipoDeducaoSaldoDisp tipoDeducaoSaldoDisp;
         public ConfigsVM(LocalDbService connection)
         {
             _connection = connection;
@@ -50,7 +51,7 @@ namespace PeachWallet.ViewModel
             var config = await _connection.GetAsync<Configs>();
 
             DiaFechamentoFatura = config.NrDiaFechamentoFatura ?? 1;
-            DeduzirDisp = config.DeduzirDisp;
+            TipoDeducaoSaldoDisp = (TipoDeducaoSaldoDisp)config.TipoDeducaoSaldoDisp;
             _isLoading = false;
         }
 
@@ -63,12 +64,14 @@ namespace PeachWallet.ViewModel
             _ = SaveDiaFechamentoAsync(value);
         }
 
-        partial void OnDeduzirDispChanged(bool value)
+        [RelayCommand]
+        public async Task DeduzirDispAsync(TiposDeducaoSaldoDispPickerItem value)
         {
             if (_isLoading)
                 return;
 
-            _ = SaveDeduzirDispAsync(value);
+            if(value.Id != TipoDeducaoSaldoDisp)
+                await SaveDeduzirDispAsync(value.Id);
         }
 
         private async Task SaveDiaFechamentoAsync(int dia)
@@ -82,15 +85,21 @@ namespace PeachWallet.ViewModel
             await _connection.UpdateAsync(config);
         }
 
-        private async Task SaveDeduzirDispAsync(bool value)
+        private async Task SaveDeduzirDispAsync(TipoDeducaoSaldoDisp value)
         {
             var config = await _connection.GetAsync<Configs>();
 
-            if (config.DeduzirDisp == value)
+            if (config.TipoDeducaoSaldoDisp == (int)value)
                 return;
 
-            config.DeduzirDisp = value;
+            config.TipoDeducaoSaldoDisp = (int)value;
             await _connection.UpdateAsync(config);
         }
+    }
+
+    public class TiposDeducaoSaldoDispPickerItem
+    {
+        public TipoDeducaoSaldoDisp Id { get; set; }
+        public string Display { get; set; }
     }
 }

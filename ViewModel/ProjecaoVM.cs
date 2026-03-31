@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Maui.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mopups.Services;
 using PeachWallet.Database;
@@ -45,39 +46,62 @@ namespace PeachWallet.ViewModel
         [RelayCommand]
         public async Task GetProjecoesAsync()
         {
-            RelatorioRepository relatorioRepository = new RelatorioRepository(_connection);
-            Configs configs = await _connection.GetAsync<Configs>();
-
             if (_dataCompleted)
                 return;
 
-            var lstProjecoes = await _connection.SelectAsync<Projecao>(x=> x.Ano >= DateTime.Now.Year);
+            var relatorioRepository = new RelatorioRepository(_connection);
+            var configs = await _connection.GetAsync<Configs>();
 
-            double SaldoDispAnoPassado = 0;
-            foreach (var item in lstProjecoes)
+            int anoAtual = DateTime.Now.Year;
+            double saldoDispAnoPassado = 0;
+
+            while (true)
             {
-                DateTime fimDoAno = new DateTime(item.Ano, 12, 31);
-                DateTime inicioDoAno = new DateTime(item.Ano, 1, 1);
-                Expression<Func<Lancamento, bool>> predicate = x => (x.DtLancamento <= fimDoAno && x.DtLancamento >= inicioDoAno && x.TipoLancamento == (int)TiposLancamento.Investimento && x.FlLiquidado);
+                DateTime inicio = new DateTime(anoAtual, 1, 1);
+                DateTime fim = new DateTime(anoAtual, 12, 31);
+                var lancamentosAno = await _connection.SelectAsync<Lancamento>(x => x.DtLancamento >= inicio && x.DtLancamento <= fim && x.TipoLancamento == (int)TiposLancamento.Investimento);
 
+                if (!lancamentosAno.Any())
+                    break;
 
-                double SaldoDispFinalDoAno = (await relatorioRepository.GetResumoAno(item.Ano)).FirstOrDefault(x=> x.NrMes == 12)?.ValorDisponivelTotal ?? 0;
+                double investidoTotal = lancamentosAno.Sum(x => x.Valor);
+                double investimentoNaoLiquidado = lancamentosAno.Where(x => !x.FlLiquidado).Sum(x => x.Valor);
 
-                double SaldoAtual = SaldoDispFinalDoAno - SaldoDispAnoPassado;
-                double SaltoTotal = (Projecoes.FirstOrDefault(x => x.Ano == item.Ano - 1)?.ValorTotal ?? SaldoAtualSemDisp) + (configs.DeduzirDisp ? SaldoAtual : 0);
-                double investidoTotal = await _connection.SumValueAsync<Lancamento>(predicate, x => x.Valor);
+                var resumoAno = await relatorioRepository.GetResumoAno(anoAtual);
+                double saldoFinal = resumoAno.FirstOrDefault(x => x.NrMes == 12)?.ValorDisponivelTotal ?? 0;
+
+                double saldoAtual = saldoFinal - saldoDispAnoPassado;
+
+                double valorBase = Projecoes.FirstOrDefault(x => x.Ano == anoAtual - 1)?.ValorTotal ?? SaldoAtualSemDisp;
+
+                double valorTotal = 0;
+
+                switch ((TipoDeducaoSaldoDisp)configs.TipoDeducaoSaldoDisp)
+                {
+                    case TipoDeducaoSaldoDisp.Nao_Deduzir:
+                    default:
+                        valorTotal = valorBase + investimentoNaoLiquidado;
+                        break;
+                    case TipoDeducaoSaldoDisp.Ano_Atual:
+                        if(anoAtual == DateTime.Now.Year)
+                            valorTotal = valorBase + saldoAtual + investimentoNaoLiquidado;
+                        else
+                            valorTotal = valorBase + investimentoNaoLiquidado;
+                        break;
+                    case TipoDeducaoSaldoDisp.Todos_Anos:
+                        valorTotal = valorBase + saldoAtual + investimentoNaoLiquidado;
+                        break;
+                }
 
                 Projecoes.Add(new ProjecaoDTO
                 {
-                    IdProjecao = item.Id,
-                    Ano = item.Ano,
-                    InvestidoMensal = item.InvestidoMensal,
-                    Investido = item.InvestidoMensal * 12,
-                    ValorTotal = item.InvestidoMensal * 12 + SaltoTotal - investidoTotal
+                    Ano = anoAtual,
+                    Investido = investidoTotal,
+                    ValorTotal = valorTotal
                 });
 
-                SaldoDispAnoPassado = SaldoDispFinalDoAno;
-                AtualizarUltimoItem();
+                saldoDispAnoPassado = saldoFinal;
+                anoAtual++;
             }
         }
 
@@ -88,115 +112,6 @@ namespace PeachWallet.ViewModel
             _dataCompleted = false;
             await GetProjecoesAsync();
             _dataCompleted = true;
-        }
-        [RelayCommand]
-        public async Task CriarProjecaoAsync()
-        {
-            var ano = Projecoes.Any() ? Projecoes.Max(x => x.Ano) + 1 : DateTime.Now.Date.Year;
-            var result = await PromptService.ShowTextPromptAsync(
-                title: "Nova Projeção",
-                fieldTitle: $"Quanto pretende investir mensalmente em {ano}?",
-                keyboard: Keyboard.Numeric
-            );
-
-            if (string.IsNullOrEmpty(result))
-                return;
-            int meses = DateTime.Now.Date.Year == ano ? 12 - DateTime.Now.Month + 1 : 12;
-            double SaltoTotal = Projecoes.FirstOrDefault(x => x.Ano == ano - 1)?.ValorTotal ?? SaldoAtual;
-
-            ProjecaoDTO projecao = new ProjecaoDTO
-            {
-                Ano = ano,
-                InvestidoMensal = double.Parse(result),
-                ValorTotal = double.Parse(result) * meses + SaltoTotal,
-                Investido = double.Parse(result) * meses
-            };
-
-            projecao.IdProjecao = await _connection.CreateAsync(new Projecao
-            {
-                Ano = projecao.Ano,
-                InvestidoMensal = projecao.InvestidoMensal,
-            });
-
-            Projecoes.Add(projecao);
-            AtualizarUltimoItem();
-        }
-        [RelayCommand]
-        public async Task EditarProjecaoAsync(ProjecaoDTO projecao)
-        {
-
-            var result = await PromptService.ShowTextPromptAsync(
-                title: "Editar Projeção",
-                fieldTitle: $"Quanto pretende investir mensalmente em {projecao.Ano}?",
-                initialValue: projecao.InvestidoMensal.ToString(),
-                keyboard: Keyboard.Numeric
-            );
-
-            if (string.IsNullOrEmpty(result))
-                return;
-            projecao.InvestidoMensal = double.Parse(result);
-
-            await EditarProjecao(projecao);
-
-            var projecoesFuturas = Projecoes.Where(x => x.Ano > projecao.Ano).ToList();
-            foreach (var item in projecoesFuturas)
-                await EditarProjecao(item);
-        }
-
-        [RelayCommand]
-        private async Task RemoverProjecaoAsync(ProjecaoDTO projecao)
-        {
-            bool confirmar = await Application.Current.MainPage.DisplayAlert(
-                                "Excluir Projeção",
-                                "Tem certeza que deseja excluir a projeção ?",
-                                "Excluir",
-                                "Cancelar");
-
-            if (!confirmar)
-                return;
-
-            await _connection.DeleteAsync<Projecao>(projecao.IdProjecao);
-
-            var item = Projecoes.FirstOrDefault(x => x.IdProjecao == projecao.IdProjecao);
-            if (item != null)
-            {
-                Projecoes.Remove(item);
-                AtualizarUltimoItem();
-            }
-        }
-
-        private async Task EditarProjecao(ProjecaoDTO projecao)
-        {
-            int meses = DateTime.Now.Date.Year == projecao.Ano ? 12 - DateTime.Now.Month + 1 : 12;
-            double SaltoTotal = Projecoes.FirstOrDefault(x => x.Ano == projecao.Ano - 1)?.ValorTotal ?? SaldoAtual;
-
-            projecao.ValorTotal = projecao.InvestidoMensal * meses + SaltoTotal;
-
-            await _connection.UpdateAsync(new Projecao
-            {
-                Id = projecao.IdProjecao,
-                Ano = projecao.Ano,
-                InvestidoMensal = projecao.InvestidoMensal,
-            });
-
-            var existente = Projecoes.FirstOrDefault(x => x.IdProjecao == projecao.IdProjecao);
-            if (existente == null)
-                return;
-            existente.Ano = projecao.Ano;
-            existente.InvestidoMensal = projecao.InvestidoMensal;
-            existente.Investido = projecao.InvestidoMensal * meses;
-            existente.ValorTotal = projecao.ValorTotal;
-        }
-
-        private void AtualizarUltimoItem()
-        {
-            if (Projecoes == null || Projecoes.Count == 0)
-                return;
-
-            foreach (var p in Projecoes)
-                p.PodeDeletar = false;
-
-            Projecoes.Last().PodeDeletar = true;
         }
 
     }
